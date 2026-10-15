@@ -1,66 +1,727 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#07030d">
-<title>SQAD Game | Ecosystem</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-:root {
-  --bg: #07030d;
-  --panel: #11071e;
-  --panel-border: rgba(255, 63, 200, 0.25);
-  --pink: #ff3fc8;
-  --pink-glow: rgba(255, 63, 200, 0.4);
-  --violet: #8d5cff;
-  --cyan: #48dcff;
-  --gold: #ffd45c;
-  --green: #00e676;
-  --red: #ff5252;
-  --text: #ffffff;
-  --muted: #a393b8;
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#090b12" />
+  <title>SQAD Game</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg:#09070c; --panel:#151019; --panel2:#211522; --line:#3d263b;
+      --text:#fff5fb; --muted:#b09aaa; --cyan:#ff78c8; --purple:#b34cff;
+      --green:#ff91d2; --pink:#ff4fb8; --danger:#ff657a;
+      --radius:18px;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--text); background:radial-gradient(ellipse at 70% -10%,#451338 0%,transparent 38%),radial-gradient(ellipse at 0% 50%,#24102a 0%,transparent 36%),var(--bg); font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif; min-height:100vh; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    .app { max-width:1200px; margin:auto; min-height:100vh; padding:18px 18px calc(96px + env(safe-area-inset-bottom)); }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    .brand { display:flex; align-items:center; gap:11px; min-width:0; }
+    .logo { width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:1000;font-size:16px;color:#080a11;background:linear-gradient(135deg,#ff8bd5,#a64dff);box-shadow:0 0 28px #ff4fb833; }
+    .brand h1 { font-size:18px;letter-spacing:2px;margin:0; }
+    .brand p { margin:2px 0 0;color:var(--muted);font-size:12px; }
+    .wallet-pill { border:1px solid #3a4260;background:#14192a;border-radius:14px;padding:9px 12px;display:flex;align-items:center;gap:9px;white-space:nowrap; }
+    .wallet-pill strong { font-variant-numeric:tabular-nums; }
+    .wallet-pill span { color:var(--cyan); }
+    .layout { display:grid;grid-template-columns:190px minmax(0,1fr);gap:18px;align-items:start; }
+    .sidebar,.panel { background:linear-gradient(180deg,#211522f5,#120d17f5);border:1px solid var(--line);border-radius:var(--radius); }
+    .sidebar { padding:12px;position:sticky;top:12px; }
+    .eyebrow { color:var(--muted);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:800;margin:4px 8px 12px; }
+    .mode-list { display:flex;flex-direction:column;gap:7px;max-height:calc(100vh - 190px);overflow-y:auto;padding-right:3px;scrollbar-width:thin;scrollbar-color:#9b3f7a transparent; }
+    .mode-btn { display:flex;align-items:center;gap:10px;text-align:left;width:100%;border:1px solid transparent;border-radius:12px;padding:11px 10px;color:#b7bfd3;background:transparent;transition:.18s; }
+    .mode-btn:hover { background:#1a2032;color:white; }
+    .mode-btn.active { background:linear-gradient(100deg,#48203d,#311d48);border-color:#8d3f76;color:white;box-shadow:inset 2px 0 var(--pink); }
+    .mode-icon { width:29px;height:29px;display:grid;place-items:center;background:#20273a;border-radius:9px;font-size:16px;flex-shrink:0; }
+    .mode-name { font-weight:750;font-size:13px; }
+    .mode-tag { display:block;font-size:10px;color:var(--muted);font-weight:500;margin-top:2px; }
+    .content { min-width:0;display:flex;flex-direction:column;gap:16px; }
+    .hero { position:relative;overflow:hidden;padding:25px;border-radius:22px;border:1px solid #343652;background:linear-gradient(115deg,#32162c 0%,#29172f 58%,#1b1025 100%);min-height:190px; }
+    .hero:after { content:"";position:absolute;width:230px;height:230px;border:1px solid #ff5ebc33;border-radius:50%;right:-45px;top:-95px;box-shadow:0 0 0 25px #57f3ff08,0 0 0 55px #57f3ff06; }
+    .hero-content { position:relative;z-index:1;max-width:600px; }
+    .chip { display:inline-flex;align-items:center;gap:7px;border:1px solid #48516b;background:#141a2abf;padding:5px 9px;border-radius:999px;font-size:10px;color:#cbd5f5;letter-spacing:1px;text-transform:uppercase; }
+    .dot { width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 10px var(--green); }
+    .hero h2 { font-size:clamp(25px,4vw,38px);line-height:1.08;letter-spacing:-1px;margin:16px 0 9px; }
+    .gradient-text { background:linear-gradient(90deg,#ff8bd5,#c38aff);-webkit-background-clip:text;background-clip:text;color:transparent; }
+    .hero p { color:#abb4ce;max-width:520px;margin:0 0 19px;font-size:13px; }
+    .actions { display:flex;gap:9px;flex-wrap:wrap; }
+    .btn { border:1px solid #3a4260;border-radius:12px;padding:11px 15px;color:white;background:#1b2133;font-weight:800;transition:transform .15s,filter .15s; }
+    .btn:active { transform:scale(.98); }
+    .btn-primary { background:linear-gradient(100deg,#ff78c8,#b66cff);color:#160815;border:0;box-shadow:0 7px 24px #7d8bff20; }
+    .btn-soft { background:#171c2b; }
+    .btn:disabled { opacity:.45;cursor:not-allowed; }
+    .section-head { display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 0; }
+    .section-head h3 { margin:0;font-size:17px; }
+    .section-head span { color:var(--muted);font-size:12px; }
+    .stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px; }
+    .stat { padding:15px;border-radius:16px;border:1px solid var(--line);background:#111521;min-width:0; }
+    .stat .label { color:var(--muted);font-size:11px; }
+    .stat .value { font-size:22px;font-weight:900;margin-top:7px;letter-spacing:-.5px;overflow-wrap:anywhere; }
+    .stat .sub { color:#6e7893;font-size:10px;margin-top:4px; }
+    .game-card { padding:20px;border-radius:20px;border:1px solid #333a53;background:linear-gradient(145deg,#171c2b,#111521); }
+    .game-title-row { display:flex;align-items:flex-start;justify-content:space-between;gap:12px; }
+    .game-title-row h3 { margin:0;font-size:21px; }
+    .game-title-row p { margin:5px 0 0;color:var(--muted);font-size:12px; }
+    .badge { display:inline-block;padding:5px 9px;border-radius:8px;background:#213b3a;color:var(--green);font-size:10px;font-weight:850;letter-spacing:.7px;white-space:nowrap; }
+    .play-area { min-height:210px;margin:18px 0;padding:20px;border:1px solid #2b3248;border-radius:16px;background:radial-gradient(ellipse at center,#3a1d39 0%,#130d18 70%);display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center; }
+    .big-symbol { font-size:58px;filter:drop-shadow(0 0 20px #ff4fb866);line-height:1.2; }
+    .big-symbol.rocket-flight { animation:rocketFlight 1.25s ease-in-out infinite alternate; transform-origin:center; }
+    .play-area.rocket-running { background:radial-gradient(ellipse at 50% 85%,#5a1d50 0%,#241128 42%,#100b15 78%); }
+    .play-area.rocket-running:before { content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(175deg,transparent 0 24px,#ff78c812 25px 27px,transparent 28px 48px);animation:starfield .65s linear infinite; }
+    .play-area { position:relative; }
+    .play-area > * { position:relative;z-index:1; }
+    @keyframes rocketFlight { from { transform:translate(-9px,8px) rotate(-12deg) scale(.96);filter:drop-shadow(0 0 12px #ff4fb8); } to { transform:translate(12px,-16px) rotate(8deg) scale(1.08);filter:drop-shadow(0 0 28px #ff78c8); } }
+    @keyframes starfield { from { transform:translateY(0);opacity:.55; } to { transform:translateY(24px);opacity:1; } }
+    .exchange { padding:19px;border-radius:20px;border:1px solid #71345f;background:linear-gradient(145deg,#211321,#120d18); }
+    .market-head { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px; }
+    .market-head h3 { margin:0;font-size:20px; }
+    .market-head p { margin:4px 0 0;color:var(--muted);font-size:12px; }
+    .market-pills { display:flex;gap:7px;flex-wrap:wrap;margin:12px 0 16px; }
+    .market-pill { border:1px solid #4a2a45;background:#211523;border-radius:10px;padding:8px 10px;color:#c7a9c1;font-size:11px; }
+    .market-pill.active { color:#fff;background:#51213f;border-color:#bd4b94; }
+    .asset-list { display:flex;flex-direction:column;gap:8px; }
+    .asset-row { display:grid;grid-template-columns:minmax(0,1.5fr) minmax(80px,1fr) auto;align-items:center;gap:10px;padding:12px;border:1px solid #39243a;background:#19111d;border-radius:13px; }
+    .asset-name { display:flex;align-items:center;gap:10px;min-width:0; }
+    .asset-icon { width:37px;height:37px;border-radius:12px;display:grid;place-items:center;background:#39203a;font-size:18px; }
+    .asset-name strong,.asset-price strong { display:block;font-size:13px; }
+    .asset-name small,.asset-price small { display:block;color:var(--muted);font-size:10px;margin-top:3px; }
+    .asset-price { text-align:right;min-width:0; }
+    .asset-change { color:#ff8bd5;font-size:11px;font-weight:800; }
+    .market-actions { display:flex;gap:6px; }
+    .market-actions .btn { padding:8px 10px;font-size:11px; }
+    .market-empty { padding:22px 12px;text-align:center;color:var(--muted);font-size:12px; }
+    .play-message { margin-top:10px;color:#c5cbe0;font-weight:750; }
+    .play-sub { margin-top:5px;color:var(--muted);font-size:12px; }
+    .controls { display:flex;gap:10px;align-items:center;flex-wrap:wrap; }
+    .field { display:flex;flex-direction:column;gap:6px;min-width:130px;flex:1; }
+    .field label { color:var(--muted);font-size:11px; }
+    .field input { width:100%;border:1px solid #343c56;background:#0c101a;border-radius:11px;color:white;padding:11px 12px;outline:none; }
+    .field input:focus { border-color:var(--pink); }
+    .note { color:#7e88a4;font-size:11px;margin:12px 0 0; }
+    .two-col { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+    .small-panel { padding:17px;border:1px solid var(--line);background:#111521;border-radius:17px; }
+    .small-panel h4 { margin:0 0 6px;font-size:14px; }
+    .small-panel p { margin:0;color:var(--muted);font-size:12px; }
+    .bottom-nav { position:fixed;z-index:10;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(360px,calc(100vw - 28px));padding:7px;border-radius:17px;border:1px solid #343b54;background:#101421ee;backdrop-filter:blur(18px);box-shadow:0 12px 45px #0008; }
+    .nav-btn { border:0;background:transparent;color:#8f99b5;border-radius:12px;padding:10px 12px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px; }
+    .nav-btn.active { background:#252c40;color:white;box-shadow:inset 0 0 0 1px #3b4661; }
+    .view { display:none; }
+    .view.active { display:flex;flex-direction:column;gap:16px; }
+    #menuView.mode-focused .hero, #menuView.mode-focused > .stats, #menuView.mode-focused > .two-col { display:none!important; }
+    #menuView.mode-focused > .section-head { margin-bottom:0; }
+    .rocket-stage { width:100%;max-width:620px;height:150px;position:relative;overflow:hidden;border:1px solid #65335b;border-radius:14px;margin:0 auto 12px;background:linear-gradient(180deg,#140b1d,#1d0d24); }
+    .rocket-stage:before { content:"";position:absolute;inset:0;background-image:linear-gradient(#ff78c812 1px,transparent 1px),linear-gradient(90deg,#ff78c812 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(90deg,transparent,#000 20%,#000); }
+    .rocket-route { position:absolute;inset:0;width:100%;height:100%; }
+    .rocket-route path { fill:none;stroke:#ff78c8;stroke-width:2;stroke-dasharray:5 7;opacity:.8; }
+    .rocket-stage #gameSymbol { position:absolute;left:7%;bottom:12%;font-size:35px;z-index:2;filter:drop-shadow(0 0 14px #ff4fb8); }
+    .rocket-stage:not(.crash-stage) { height:auto;min-height:76px;overflow:visible;border:0;background:transparent;margin:0 auto 8px; }
+    .rocket-stage:not(.crash-stage):before,.rocket-stage:not(.crash-stage) .rocket-route { display:none; }
+    .rocket-stage:not(.crash-stage) #gameSymbol { position:static;display:block!important;font-size:58px;transform:none;animation:none; }
+    .rocket-stage #gameSymbol.rocket-flight { animation:rocketFlight 2.2s cubic-bezier(.2,.7,.25,1) infinite alternate; }
+    @keyframes rocketFlight { from { transform:translate(0,0) rotate(35deg) scale(.9); } to { transform:translate(min(65vw,360px),-82px) rotate(35deg) scale(1.12); } }
+    .market-chart-wrap { margin:14px 0 18px;padding:14px;border:1px solid #4a2948;border-radius:15px;background:#100b15; }
+    .chart-toolbar { display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px; }
+    .chart-toolbar h4 { margin:0;font-size:14px; }
+    .chart-ranges { display:flex;gap:5px;flex-wrap:wrap; }
+    .chart-range { border:1px solid #4a2a45;background:#211523;border-radius:8px;padding:7px 10px;color:#c7a9c1;font-size:11px; }
+    .chart-range.active { color:#fff;background:#51213f;border-color:#bd4b94; }
+    #marketChart { width:100%;height:210px;display:block; }
+    .chart-caption { display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:10px;margin-top:5px; }
+    .asset-row.selected { border-color:#e65bb0;background:#28152a; }
+    .dev-controls { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px; }
+    .dev-control { padding:12px;border:1px solid #5c3154;border-radius:12px;background:#180f1c; }
+    .dev-control label { display:block;font-size:11px;color:var(--muted);margin-bottom:7px; }
+    .dev-control input,.dev-control select { width:100%;accent-color:#ff78c8;background:#0d0911;color:#fff;border:1px solid #59334f;border-radius:8px;padding:8px; }
+    .dev-banner { padding:10px 12px;border:1px solid #a85b36;background:#2a1711;border-radius:10px;color:#ffd2a8;font-size:11px;margin-top:12px; }
+    .profile-header { display:flex;align-items:center;gap:14px;padding:20px; }
+    .avatar { width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--purple),var(--pink));display:grid;place-items:center;color:#090b12;font-size:23px;font-weight:950; }
+    .profile-header h2 { margin:0;font-size:20px; }
+    .profile-header p { margin:4px 0 0;color:var(--muted);font-size:12px; }
+    .list { display:flex;flex-direction:column;gap:8px;margin-top:14px; }
+    .list-row { display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #252b3c;font-size:12px; }
+    .list-row:last-child { border-bottom:0; }
+    .list-row span { color:var(--muted); }
+    .admin-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px; }
+    .admin-action { padding:13px;border:1px solid #343c56;background:#151b2a;border-radius:12px;text-align:left;color:white; }
+    .admin-action strong { display:block;font-size:12px; }
+    .admin-action small { color:var(--muted);font-size:10px;display:block;margin-top:4px; }
+    .notice { padding:12px 14px;border:1px solid #51472d;background:#211d14;color:#ddc58b;border-radius:12px;font-size:11px; }
+    .toast { position:fixed;z-index:20;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translate(-50%,-12px);opacity:0;pointer-events:none;max-width:calc(100vw - 24px);background:#1c2435;border:1px solid #485573;border-radius:12px;padding:11px 15px;color:white;box-shadow:0 10px 35px #0007;transition:.2s;font-size:12px; }
+    .toast.show { opacity:1;transform:translate(-50%,0); }
+    .muted { color:var(--muted); }
+    .hidden { display:none!important; }
+    @media(max-width:760px) {
+      .app { padding:13px 12px calc(95px + env(safe-area-inset-bottom)); }
+      .layout { grid-template-columns:1fr;gap:12px; }
+      .sidebar { position:relative;top:auto;padding:10px; }
+      .eyebrow { margin:2px 6px 8px; }
+      .mode-list { flex-direction:row;max-height:none;overflow-x:auto;overflow-y:hidden;padding-bottom:3px;scroll-snap-type:x proximity; }
+      .mode-btn { flex:0 0 auto;width:auto;min-width:118px;scroll-snap-align:start;padding:8px; }
+      .mode-name { font-size:12px; }
+      .mode-tag { display:none; }
+      .hero { padding:21px;min-height:185px; }
+      .stats { gap:8px; }
+      .stat { padding:12px; }
+      .stat .value { font-size:18px; }
+      .two-col { grid-template-columns:1fr; }
+      .admin-grid { grid-template-columns:1fr 1fr; }
+      .wallet-pill { padding:8px 9px;font-size:12px; }
+    }
+    @media(max-width:390px) { .brand p { display:none; } .hero h2 { font-size:26px; } .stat .value { font-size:16px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">SQ</div>
+        <div><h1>SQAD <span class="gradient-text">GAME</span></h1><p>Играй умнее. Поднимайся выше.</p></div>
+      </div>
+      <div class="wallet-pill"><span>✦</span><strong id="headerBalance">—</strong><button class="btn btn-soft" style="padding:6px 9px;font-size:11px" id="quickTopup">+</button></div>
+    </header>
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; overflow-x: hidden; }
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="eyebrow">Игровые режимы</div>
+        <nav class="mode-list" id="modeList" aria-label="Выбор режима">
+          <button class="mode-btn active" data-mode="crash"><span class="mode-icon">🚀</span><span class="mode-name">Crash<span class="mode-tag">Поймай множитель</span></span></button>
+          <button class="mode-btn" data-mode="coin"><span class="mode-icon">🪙</span><span class="mode-name">Coin Flip<span class="mode-tag">Орёл или решка</span></span></button>
+          <button class="mode-btn" data-mode="dice"><span class="mode-icon">🎲</span><span class="mode-name">Dice<span class="mode-tag">Угадай результат</span></span></button>
+          <button class="mode-btn" data-mode="multiplier"><span class="mode-icon">⚡</span><span class="mode-name">Multiplier<span class="mode-tag">Выбери множитель</span></span></button>
+          <button class="mode-btn" data-mode="exchange"><span class="mode-icon">📈</span><span class="mode-name">Биржа<span class="mode-tag">Активы и портфель</span></span></button>
+          <button class="mode-btn" data-mode="missions"><span class="mode-icon">🎯</span><span class="mode-name">Задания<span class="mode-tag">Выполняй миссии</span></span></button>
+          <button class="mode-btn" data-mode="leaderboard"><span class="mode-icon">🏆</span><span class="mode-name">Лидеры<span class="mode-tag">Сравни результаты</span></span></button>
+        </nav>
+      </aside>
 
-#app { display: block !important; min-height: 100vh; padding-bottom: 70px; }
+      <main class="content">
+        <section class="view active" id="menuView">
+          <div class="hero">
+            <div class="hero-content">
+              <span class="chip"><span class="dot"></span> Арена открыта</span>
+              <h2>Твой следующий<br><span class="gradient-text">большой ход.</span></h2>
+              <p>Выбирай режим, выполняй задания и соревнуйся с другими игроками. Начни с демо-игры и изучи механику.</p>
+              <div class="actions"><button class="btn btn-primary" id="heroPlay">Играть сейчас ↗</button><button class="btn btn-soft" id="heroProfile">Мой профиль</button></div>
+            </div>
+          </div>
 
-/* ВЕРТИКАЛЬНАЯ СКРОЛЛ-СТРОКА (БОКОВОЙ САЙДБАР) */
-.sidebar { width: 68px; background: rgba(13, 5, 25, 0.95); backdrop-filter: blur(15px); border-right: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 12px; position: fixed; top: 0; bottom: 60px; left: 0; z-index: 100; overflow-y: auto; scrollbar-width: none; }
-.sidebar::-webkit-scrollbar { display: none; }
+          <div class="stats">
+            <div class="stat"><div class="label">ИГРОВОЙ БАЛАНС</div><div class="value" id="mainBalance">—</div><div class="sub">игровые очки</div></div>
+            <div class="stat"><div class="label">СЕРИЯ ДНЕЙ</div><div class="value" id="streakValue">1 день</div><div class="sub">заходи каждый день</div></div>
+            <div class="stat"><div class="label">ТВОЙ УРОВЕНЬ</div><div class="value" id="levelValue">Новичок</div><div class="sub">играй и развивайся</div></div>
+          </div>
 
-.sidebar-item { width: 48px; height: 48px; border-radius: 14px; background: var(--panel); border: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease; }
-.sidebar-item:active { transform: scale(0.92); }
-.sidebar-item.active { background: linear-gradient(135deg, var(--pink), var(--violet)); border-color: #fff; box-shadow: 0 0 12px var(--pink-glow); }
-.sidebar-label { font-size: 8px; font-weight: 800; color: var(--muted); margin-top: 2px; }
-.sidebar-item.active .sidebar-label { color: #fff; }
+          <div class="section-head"><h3 id="currentModeHeading">🚀 Crash</h3><span id="modeIndex">РЕЖИМ 1 ИЗ 6</span></div>
+          <section class="game-card">
+            <div class="game-title-row"><div><h3 id="gameTitle">Crash</h3><p id="gameDescription">Забери множитель до остановки раунда.</p></div><span class="badge" id="gameBadge">DEMO</span></div>
+            <div class="play-area" id="playArea">
+              <div class="rocket-stage" id="rocketStage">
+                <svg class="rocket-route" viewBox="0 0 620 150" preserveAspectRatio="none" aria-hidden="true"><path d="M18 132 C145 130 180 112 255 88 S420 38 590 14" /></svg>
+                <div class="big-symbol" id="gameSymbol">🚀</div>
+              </div>
+              <div class="play-message" id="gameMessage">Готов к запуску?</div>
+              <div class="play-sub" id="gameSub">Демо-режим: реальные ставки отключены</div>
+              <div class="actions hidden" id="coinChoices" style="justify-content:center;margin-top:12px"><button class="btn btn-soft" data-coin-choice="Орёл">🦅 Орёл</button><button class="btn btn-soft" data-coin-choice="Решка">🌙 Решка</button></div>
+            </div>
+            <div class="controls">
+              <div class="field"><label for="betAmount">Сумма игровых очков</label><input id="betAmount" type="number" min="1" max="1000" step="1" value="10" inputmode="numeric"></div>
+              <button class="btn btn-primary" id="playButton" style="align-self:flex-end;min-height:43px">Играть</button>
+              <button class="btn btn-soft hidden" id="cashoutButton" style="align-self:flex-end;min-height:43px">Забрать</button>
+            </div>
+            <p class="note" id="gameNote">Демонстрационная механика. Результаты не являются реальными выплатами и не списывают баланс.</p>
+          </section>
 
-.main-content { margin-left: 68px; padding: 12px; }
+          <section class="exchange hidden" id="exchangePanel">
+            <div class="market-head"><div><h3>📈 SQAD Exchange</h3><p>Игровая биржа · котировки и твой портфель</p></div><span class="badge">MARKET</span></div>
+            <div class="stats" style="margin-bottom:14px">
+              <div class="stat"><div class="label">БАЛАНС</div><div class="value" id="marketBalance">—</div><div class="sub">игровые очки</div></div>
+              <div class="stat"><div class="label">АКТИВОВ</div><div class="value" id="marketAssetCount">—</div><div class="sub">доступно на бирже</div></div>
+              <div class="stat"><div class="label">ПОРТФЕЛЬ</div><div class="value" id="portfolioValue">—</div><div class="sub">оценка из подключённых данных</div></div>
+            </div>
+            <div class="market-pills"><button class="market-pill active" data-market-tab="all">Все активы</button><button class="market-pill" data-market-tab="portfolio">Мой портфель</button><button class="market-pill" data-market-tab="history">История сделок</button></div>
+            <div class="market-chart-wrap">
+              <div class="chart-toolbar"><h4 id="chartTitle">График NOVA</h4><div class="chart-ranges"><button class="chart-range" data-range="15m">15 мин</button><button class="chart-range active" data-range="1h">1 час</button><button class="chart-range" data-range="1d">1 день</button></div></div>
+              <canvas id="marketChart" width="900" height="300" aria-label="График цены актива"></canvas>
+              <div class="chart-caption"><span id="chartLowHigh">Загрузка истории…</span><span id="chartUpdated">Обновление каждые 10 сек · демо-котировки</span></div>
+            </div>
+            <div class="asset-list" id="assetList"><div class="market-empty">Загружаем активы биржи…</div></div>
+            <p class="note">Торговля должна подтверждаться сервером. Если в Supabase ещё нет защищённых действий покупки/продажи, кнопки сообщат об этом и не изменят баланс.</p>
+          </section>
 
-/* HEADER & BALANCES */
-.header { display: flex; align-items: center; justify-content: space-between; padding: 6px 0 12px; margin-bottom: 10px; border-bottom: 1px solid var(--panel-border); }
-.brand { font-weight: 900; font-size: 16px; cursor: pointer; }
-.brand span { color: var(--pink); text-shadow: 0 0 10px var(--pink-glow); }
-.brand small { display: block; font-size: 8px; color: var(--muted); letter-spacing: 2px; }
+          <div class="two-col">
+            <div class="small-panel"><h4>🎁 Ежедневный бонус</h4><p>Возвращайся каждый день и забирай награду.</p><button class="btn btn-soft" id="dailyButton" style="margin-top:12px;width:100%">Забрать бонус</button></div>
+            <div class="small-panel"><h4>👥 Приглашай друзей</h4><p>Поделись ссылкой. Бонусы начисляются после настройки серверной реферальной системы.</p><button class="btn btn-soft" id="refButton" style="margin-top:12px;width:100%">Моя ссылка</button></div>
+          </div>
+        </section>
 
-.balances-wrap { display: flex; gap: 6px; }
-.balance-chip { display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #1d0933, #0c0417); border: 1px solid var(--panel-border); border-radius: 16px; padding: 4px 8px; cursor: pointer; }
-.balance-chip.stars { border-color: var(--gold); }
-.balance-num { font-weight: 900; font-size: 11px; color: var(--gold); }
+        <section class="view" id="profileView">
+          <div class="panel profile-header">
+            <div class="avatar" id="avatarLetter">S</div>
+            <div style="min-width:0"><h2 id="profileName">Игрок SQAD</h2><p id="profileTelegram">@telegram_player · профиль</p><p class="muted" id="profileRole" style="margin-top:6px">Игрок</p></div>
+          </div>
+          <div class="stats">
+            <div class="stat"><div class="label">БАЛАНС</div><div class="value" id="profileBalance">—</div><div class="sub">игровые очки</div></div>
+            <div class="stat"><div class="label">ПОБЕДЫ</div><div class="value" id="winsValue">0</div><div class="sub">демо-статистика</div></div>
+            <div class="stat"><div class="label">РЕФЕРАЛЫ</div><div class="value" id="refCount">0</div><div class="sub">после подключения backend</div></div>
+          </div>
+          <div class="game-card">
+            <div class="section-head"><h3>Кошелёк</h3><span>Операции</span></div>
+            <p class="muted" style="font-size:12px;margin:8px 0 14px">Игровые очки и Telegram Stars — разные вещи. Пополнение Stars появится после настройки Telegram Bot Payments и серверного подтверждения платежей.</p>
+            <div class="actions"><button class="btn btn-primary" id="topupButton">✦ Пополнить Stars</button><button class="btn btn-soft" id="withdrawButton">Вывод Stars</button></div>
+            <div class="list">
+              <div class="list-row"><span>Игровой баланс</span><strong id="walletBalance">—</strong></div>
+              <div class="list-row"><span>Способ пополнения</span><strong>Telegram Stars · требует настройки</strong></div>
+              <div class="list-row"><span>История операций</span><strong>Подключается к Supabase</strong></div>
+            </div>
+          </div>
+          <div class="game-card">
+            <div class="section-head"><h3>Настройки профиля</h3><span>Telegram</span></div>
+            <div class="list">
+              <div class="list-row"><span>Telegram ID</span><strong id="profileId">не подтверждён</strong></div>
+              <div class="list-row"><span>Роль</span><strong id="profileRole2">Игрок</strong></div>
+              <div class="list-row"><span>Статус соединения</span><strong id="connectionStatus">Демо-режим</strong></div>
+            </div>
+          </div>
+          <section class="game-card hidden" id="adminPanel">
+            <div class="section-head"><h3>🛡️ Панель владельца</h3><span class="badge">OWNER</span></div>
+            <p class="muted" style="font-size:12px">Управление ролями и режимами должно выполняться защищёнными Supabase Edge Functions. Не выдавайте права только на клиенте.</p>
+            <div class="admin-grid">
+              <button class="admin-action" data-admin="users"><strong>👥 Пользователи</strong><small>Поиск и просмотр профилей</small></button>
+              <button class="admin-action" data-admin="roles"><strong>🛡️ Роли</strong><small>Владелец, админ, модератор</small></button>
+              <button class="admin-action" data-admin="modes"><strong>🎮 Игровые режимы</strong><small>Включение и настройки</small></button>
+              <button class="admin-action" data-admin="economy"><strong>💠 Экономика</strong><small>Баланс и журнал операций</small></button>
+              <button class="admin-action" data-admin="payments"><strong>✦ Платежи</strong><small>Проверка Stars-транзакций</small></button>
+              <button class="admin-action" data-admin="stats"><strong>📊 Статистика</strong><small>Активность и игровые метрики</small></button>
+            </div>
+            <div class="notice" style="margin-top:14px">Режим разработчика ниже управляет только локальной симуляцией. Любое изменение сценария помечается игрокам как DEMO CONTROLLED. Не используйте скрытое управление исходами в реальных играх или биржевых котировках.</div>
+            <div class="dev-controls">
+              <div class="dev-control"><label for="devCrashMax">Максимум множителя Crash (симуляция)</label><input id="devCrashMax" type="range" min="1.2" max="10" step="0.1" value="3.5"><strong id="devCrashMaxLabel">×3.5</strong></div>
+              <div class="dev-control"><label for="devCoinChance">Вероятность орла (симуляция)</label><input id="devCoinChance" type="range" min="10" max="90" step="5" value="50"><strong id="devCoinChanceLabel">50%</strong></div>
+              <div class="dev-control"><label for="devMarketTrend">Направление тестового графика</label><select id="devMarketTrend"><option value="random">Случайное</option><option value="up">Вверх</option><option value="down">Вниз</option><option value="sideways">Боковое</option></select></div>
+              <div class="dev-control"><label for="devSimMode">Режим управления</label><select id="devSimMode"><option value="normal">Обычная демо-симуляция</option><option value="controlled">Контролируемый тест</option></select></div>
+            </div>
+            <div id="devStatus" class="dev-banner hidden">Включён контролируемый тест. Игрокам необходимо показывать эту метку.</div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
 
-/* SCREENS */
-.screen { display: none; }
-.screen.active { display: block !important; }
+  <nav class="bottom-nav" aria-label="Основная навигация">
+    <button class="nav-btn active" data-view="menu">⌂ <span>Меню</span></button>
+    <button class="nav-btn" data-view="profile">◉ <span>Профиль</span></button>
+  </nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-.hero-card { background: linear-gradient(160deg, #1f0a33, #0d0417); border: 1px solid var(--panel-border); border-radius: 18px; padding: 14px; margin-bottom: 12px; }
-.section-title { font-size: 12px; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin: 12px 0 8px; }
+  <script>
+    /*
+      SQAD Game — клиентская основа.
+      1) Заполните SUPABASE_URL и SUPABASE_ANON_KEY.
+      2) Настройте серверную проверку Telegram initData в Edge Function.
+      3) Никогда не кладите service_role key в этот файл.
+      4) Демо-игры ниже не используют реальные ставки и не списывают баланс.
+    */
+    const CONFIG = {
+      SUPABASE_URL: "",       // например https://xxxx.supabase.co
+      SUPABASE_ANON_KEY: "",  // только anon/public key
+      OWNER_TG_ID: "1229294243",
+      BOT_USERNAME: ""        // username вашего бота без @
+    };
 
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px; padding: 12px; cursor: pointer; }
-.card-icon { font-size: 24px; margin-bottom: 4px; }
-.card-title { font-weight: 900; font-size: 12px; }
-.card-sub { font-size: 9px; color: var(--muted); margin-top: 2px; }
+    const tg = window.Telegram?.WebApp;
+    try { tg?.ready(); tg?.expand(); } catch (_) {}
 
-.game-box { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; padding: 14px;
+    const state = {
+      balance: 100,
+      username: tg?.initDataUnsafe?.user?.username || "",
+      firstName: tg?.initDataUnsafe?.user?.first_name || "Игрок SQAD",
+      telegramId: tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "",
+      role: "player",
+      mode: "crash",
+      wins: 0,
+      streak: 1,
+      referrals: 0,
+      demoCrashTimer: null,
+      crashMultiplier: 1,
+      crashActive: false,
+      demoDailyClaimed: false,
+      supabase: null,
+      marketAssets: [],
+      marketPortfolio: [],
+      marketTab: "all",
+      selectedAssetId: "nova",
+      marketRange: "1h",
+      marketHistory: {},
+      marketTransactions: [],
+      marketTimer: null,
+      devSettings: { crashMax: 3.5, coinChance: 50, marketTrend: "random", simMode: "normal" }
+    };
+    const LOCAL_KEY = "sqad_game_demo_v2";
+    try {
+      const saved = JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}");
+      if (Number.isFinite(saved.balance)) state.balance = saved.balance;
+      if (Array.isArray(saved.marketPortfolio)) state.marketPortfolio = saved.marketPortfolio;
+      if (Array.isArray(saved.marketAssets)) state.marketAssets = saved.marketAssets;
+      if (Array.isArray(saved.marketTransactions)) state.marketTransactions = saved.marketTransactions;
+      if (saved.marketHistory && typeof saved.marketHistory === "object") state.marketHistory = saved.marketHistory;
+      if (saved.devSettings) state.devSettings = { ...state.devSettings, ...saved.devSettings };
+      if (saved.demoDailyClaimed) state.demoDailyClaimed = true;
+    } catch (_) {}
+
+    const modes = {
+      crash: { name:"Crash", icon:"🚀", description:"Забери множитель до остановки раунда.", symbol:"🚀", message:"Готов к запуску?", sub:"Демо-режим: реальные ставки отключены", note:"Демо-раунд. Нет реальных ставок и выплат.", badge:"DEMO" },
+      coin: { name:"Coin Flip", icon:"🪙", description:"Выбери сторону монеты и проверь удачу.", symbol:"🪙", message:"Орёл или решка?", sub:"Нажми «Играть», чтобы бросить монету", note:"Результат случайный и демонстрационный.", badge:"DEMO" },
+      dice: { name:"Dice", icon:"🎲", description:"Брось кубик и получи случайный результат.", symbol:"🎲", message:"Кубик готов к броску.", sub:"Результат от 1 до 6", note:"Демо-игра без ставок и выплат.", badge:"DEMO" },
+      multiplier: { name:"Multiplier", icon:"⚡", description:"Открой случайный демонстрационный множитель.", symbol:"⚡", message:"Какой множитель выпадет?", sub:"Попробуй демо-раунд", note:"Демо-множители не связаны с реальным балансом.", badge:"DEMO" },
+      missions: { name:"Задания", icon:"🎯", description:"Выполняй игровые цели и следи за прогрессом.", symbol:"🎯", message:"Задания скоро появятся.", sub:"Ежедневные цели и достижения", note:"Награды будут выдаваться сервером после подключения миссий.", badge:"SOON" },
+      leaderboard: { name:"Лидеры", icon:"🏆", description:"Сравнивай результаты с другими игроками.", symbol:"🏆", message:"Твоя следующая цель — топ рейтинга.", sub:"Рейтинг подключается к Supabase", note:"Не показываем выдуманные онлайн-результаты.", badge:"SOON" },
+      exchange: { name:"SQAD Exchange", icon:"📈", description:"Покупай и продавай игровые активы.", symbol:"📈", message:"Биржа SQAD", sub:"Активы и портфель", note:"Котировки загружаются из Supabase. Торговля требует серверной проверки.", badge:"MARKET" }
+    };
+
+    const $ = (id) => document.getElementById(id);
+    function toast(message) {
+      const el = $("toast");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => el.classList.remove("show"), 3000);
+    }
+    function formatNumber(n) { return new Intl.NumberFormat("ru-RU").format(Number(n) || 0); }
+    function renderBalance() {
+      ["headerBalance","mainBalance","profileBalance","walletBalance"].forEach(id => $(id).textContent = formatNumber(state.balance));
+      $("streakValue").textContent = state.streak + (state.streak === 1 ? " день" : " дня");
+      $("winsValue").textContent = formatNumber(state.wins);
+      $("refCount").textContent = formatNumber(state.referrals);
+      $("levelValue").textContent = state.wins >= 20 ? "Ветеран" : state.wins >= 5 ? "Игрок" : "Новичок";
+    }
+    function renderProfile() {
+      $("profileName").textContent = state.firstName || "Игрок SQAD";
+      $("profileTelegram").textContent = state.username ? "@" + state.username : "Telegram-профиль";
+      $("avatarLetter").textContent = (state.firstName || "S").trim().charAt(0).toUpperCase();
+      $("profileId").textContent = state.telegramId || "не подтверждён";
+      $("profileRole").textContent = roleLabel(state.role);
+      $("profileRole2").textContent = roleLabel(state.role);
+      $("connectionStatus").textContent = state.supabase ? "Supabase подключён" : "Демо-режим";
+      const isOwnerUI = state.telegramId === CONFIG.OWNER_TG_ID && (!state.supabase || state.role === "owner");
+      $("adminPanel").classList.toggle("hidden", !isOwnerUI);
+      if (isOwnerUI) renderDevSettings();
+    }
+    function roleLabel(role) {
+      return ({owner:"Владелец",admin:"Администратор",moderator:"Модератор",player:"Игрок"})[role] || "Игрок";
+    }
+    function selectMode(key, focus = true) {
+      if (!modes[key]) return;
+      state.mode = key;
+      document.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === key));
+      $("menuView").classList.toggle("mode-focused", focus);
+      const m = modes[key];
+      const isExchange = key === "exchange";
+      $("exchangePanel").classList.toggle("hidden", !isExchange);
+      $("playArea").classList.toggle("crash-area", key === "crash");
+      document.querySelector("#menuView > .game-card").classList.toggle("hidden", isExchange);
+      document.querySelector("#menuView > .two-col").classList.toggle("hidden", focus || isExchange);
+      if (isExchange) loadMarket();
+      $("currentModeHeading").textContent = m.icon + " " + m.name;
+      $("modeIndex").textContent = "РЕЖИМ " + (Object.keys(modes).indexOf(key)+1) + " ИЗ " + Object.keys(modes).length;
+      $("gameTitle").textContent = m.name;
+      $("gameDescription").textContent = m.description;
+      $("gameSymbol").textContent = m.symbol;
+      $("gameSymbol").classList.remove("rocket-flight");
+      $("rocketStage").classList.toggle("crash-stage", key === "crash");
+      $("gameSymbol").style.display = "";
+      $("gameMessage").textContent = m.message;
+      $("gameSub").textContent = m.sub;
+      $("coinChoices").classList.toggle("hidden",key!=="coin");
+      $("gameNote").textContent = m.note;
+      $("gameBadge").textContent = state.devSettings.simMode === "controlled" ? "DEMO CONTROLLED" : m.badge;
+      $("cashoutButton").classList.add("hidden");
+      $("playButton").classList.remove("hidden");
+      $("playButton").disabled = ["missions","leaderboard","exchange"].includes(key);
+      $("playButton").textContent = key === "missions" || key === "leaderboard" ? "Скоро" : key === "exchange" ? "Биржа открыта" : "Играть";
+      if (key === "exchange") $("playButton").onclick = () => loadMarket();
+      else if (key === "missions") $("playButton").onclick = () => toast("Система заданий будет подключена к Supabase.");
+      else if (key === "leaderboard") $("playButton").onclick = () => toast("Таблица лидеров появится после подключения статистики.");
+      else $("playButton").onclick = playDemo;
+      if (state.devSettings.simMode === "controlled") $("gameSub").textContent += " · КОНТРОЛИРУЕМАЯ ДЕМО-СИМУЛЯЦИЯ";
+      if (focus) window.scrollTo({top:0,behavior:"smooth"});
+    }
+    function setView(view) {
+      const isProfile = view === "profile";
+      $("menuView").classList.toggle("active", !isProfile);
+      $("profileView").classList.toggle("active", isProfile);
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+      if (isProfile) renderProfile();
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+    function playDemo() {
+      if (state.mode === "crash") return startCrashDemo();
+      if (state.mode === "coin") {
+        if(!state.coinChoice){$("gameMessage").textContent="Сначала выбери орла или решку ниже.";return;}
+        $("gameMessage").textContent="Подбрасываем монету…"; $("gameSymbol").textContent="🪙"; $("playButton").disabled=true;
+        setTimeout(()=>{const result=Math.random()<(state.devSettings.coinChance/100)?"Орёл":"Решка";$("gameSymbol").textContent=result==="Орёл"?"🦅":"🌙";$("gameMessage").textContent="Выпало: "+result+(result===state.coinChoice?" · угадал!":" · не угадал");$("gameSub").textContent="Демо-результат. Баланс не изменён.";$("playButton").disabled=false;},700);
+      } else if (state.mode === "dice") {
+        $("gameMessage").textContent = "Бросаем кубик…";
+        $("playButton").disabled = true;
+        setTimeout(() => {
+          const n = 1 + Math.floor(Math.random()*6);
+          $("gameSymbol").textContent = ["⚀","⚁","⚂","⚃","⚄","⚅"][n-1];
+          $("gameMessage").textContent = "Выпало: " + n;
+          $("gameSub").textContent = "Демо-результат. Баланс не изменён.";
+          $("playButton").disabled = false;
+        }, 600);
+      } else if (state.mode === "multiplier") {
+        const n = (1 + Math.random()*4).toFixed(2);
+        $("gameSymbol").textContent = "⚡";
+        $("gameMessage").textContent = "Множитель ×" + n;
+        $("gameSub").textContent = "Демо-результат. Баланс не изменён.";
+      }
+    }
+    document.querySelectorAll("[data-coin-choice]").forEach(b=>b.addEventListener("click",()=>{state.coinChoice=b.dataset.coinChoice;document.querySelectorAll("[data-coin-choice]").forEach(x=>x.classList.toggle("btn-primary",x===b));toast("Выбрано: "+state.coinChoice);}));
+    function startCrashDemo() {
+      if (state.crashActive) return;
+      state.crashActive = true;
+      state.crashMultiplier = 1;
+      $("gameSymbol").classList.add("rocket-flight");
+      $("gameSymbol").textContent = "🚀";
+      $("playArea").classList.add("rocket-running");
+      $("gameMessage").textContent = "Ракета взлетает… ×1.00";
+      $("gameSub").textContent = "Это демонстрация. Забери множитель кнопкой ниже.";
+      $("playButton").classList.add("hidden");
+      $("cashoutButton").classList.remove("hidden");
+      $("cashoutButton").disabled = false;
+      $("cashoutButton").onclick = cashoutCrashDemo;
+      const crashAt = 1.2 + Math.random() * Math.max(0.1, state.devSettings.crashMax - 1.2);
+      const started = Date.now();
+      state.demoCrashTimer = setInterval(() => {
+        const seconds = (Date.now()-started)/1000;
+        state.crashMultiplier = 1 + seconds*0.32 + seconds*seconds*0.04;
+        $("gameMessage").textContent = "Множитель ×" + state.crashMultiplier.toFixed(2);
+        if (state.crashMultiplier >= crashAt) {
+          clearInterval(state.demoCrashTimer);
+          state.crashActive = false;
+          $("gameSymbol").classList.remove("rocket-flight");
+          $("playArea").classList.remove("rocket-running");
+          $("gameSymbol").textContent = "💥";
+          $("gameMessage").textContent = "Раунд остановлен!";
+          $("gameSub").textContent = "Демо-раунд завершён. Баланс не изменён.";
+          $("cashoutButton").classList.add("hidden");
+          $("playButton").classList.remove("hidden");
+        }
+      }, 120);
+    }
+    function cashoutCrashDemo() {
+      if (!state.crashActive) return;
+      clearInterval(state.demoCrashTimer);
+      state.crashActive = false;
+      $("gameSymbol").classList.remove("rocket-flight");
+      $("playArea").classList.remove("rocket-running");
+      $("gameSymbol").textContent = "✨";
+      $("gameMessage").textContent = "Забрано на ×" + state.crashMultiplier.toFixed(2);
+      $("gameSub").textContent = "Демо-успех! Игровой баланс не изменён.";
+      $("cashoutButton").classList.add("hidden");
+      $("playButton").classList.remove("hidden");
+      state.wins += 1;
+      renderBalance();
+    }
+    function persistDemo() {
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify({ balance:state.balance, marketAssets:state.marketAssets, marketPortfolio:state.marketPortfolio, marketTransactions:state.marketTransactions, marketHistory:state.marketHistory, devSettings:state.devSettings, demoDailyClaimed:state.demoDailyClaimed })); } catch (_) {}
+    }
+    function normaliseAssets(data) {
+      const assets = Array.isArray(data) ? data : (data?.assets || data?.market || data?.data?.assets || []);
+      return assets.map((a, i) => ({ id:a.id ?? a.asset_id ?? a.key ?? String(i), name:a.name ?? a.title ?? a.symbol ?? ("Актив " + (i+1)), symbol:a.symbol ?? a.ticker ?? a.name ?? ("SQ"+(i+1)), icon:a.icon ?? a.emoji ?? ["💎","🌙","⚡","🪐","🦋"][i%5], price:Number(a.price ?? a.current_price ?? a.value ?? 0), change:Number(a.change_percent ?? a.change ?? a.percent_change ?? 0), raw:a }));
+    }
+    function seedMarketHistory() {
+      const now = Date.now();
+      state.marketAssets.forEach(a => {
+        if (!Array.isArray(state.marketHistory[a.id]) || state.marketHistory[a.id].length < 2) {
+          const points=[]; let price=Math.max(.1,a.price*.88);
+          for (let i=1440;i>=0;i--) { price=Math.max(.1,price*(1+(Math.random()-.48)*.003)); points.push({t:now-i*60000,p:price}); }
+          points[points.length-1].p=a.price; state.marketHistory[a.id]=points;
+        }
+      });
+      persistDemo();
+    }
+    async function loadMarket() {
+      const list=$("assetList");
+      list.innerHTML='<div class="market-empty">Загружаем активы биржи…</div>';
+      $("marketBalance").textContent=formatNumber(state.balance);
+      if (!state.supabase) {
+        if (!state.marketAssets.length) state.marketAssets=[
+          {id:"nova",name:"Nova Crystal",symbol:"NOVA",icon:"💎",price:24.5,change:3.8},
+          {id:"pinkmoon",name:"Pink Moon",symbol:"MOON",icon:"🌙",price:13.2,change:-1.4},
+          {id:"volt",name:"Volt Energy",symbol:"VOLT",icon:"⚡",price:8.75,change:5.2},
+          {id:"orbit",name:"Orbit Token",symbol:"ORBT",icon:"🪐",price:41.1,change:2.1},
+          {id:"rose",name:"Rose Gold",symbol:"ROSE",icon:"🌹",price:17.65,change:1.2}
+        ];
+        seedMarketHistory(); renderMarket(); startMarketTicker(); return;
+      }
+      try {
+        const {data,error}=await state.supabase.functions.invoke("game",{body:{action:"get_market",initData:tg?.initData||""}});
+        if(error) throw error; if(data?.error) throw new Error(data.error);
+        state.marketAssets=normaliseAssets(data);
+        const portfolio=data?.portfolio??data?.data?.portfolio??[];
+        state.marketPortfolio=Array.isArray(portfolio)?portfolio:state.marketPortfolio;
+        const b=Number(data?.balance??data?.data?.balance); if(Number.isFinite(b)) state.balance=b;
+        seedMarketHistory(); renderBalance(); renderMarket(); startMarketTicker();
+      } catch(e) { console.error("Market load failed",e); list.innerHTML='<div class="market-empty">Не удалось загрузить биржу из Supabase. Проверьте get_market.</div>'; }
+    }
+    function startMarketTicker() {
+      if (state.marketTimer) return;
+      state.marketTimer=setInterval(()=>{
+        if (state.mode!=="exchange" || !state.marketAssets.length) return;
+        state.marketAssets.forEach(a=>{
+          let drift=0;
+          if(state.devSettings.marketTrend==="up") drift=.003+Math.random()*.006;
+          else if(state.devSettings.marketTrend==="down") drift=-.003-Math.random()*.006;
+          else if(state.devSettings.marketTrend==="sideways") drift=(Math.random()-.5)*.004;
+          else drift=(Math.random()-.49)*.012;
+          const old=a.price; a.price=Math.max(.1,a.price*(1+drift)); a.change=old?((a.price-old)/old)*100:0;
+          const hist=state.marketHistory[a.id]||(state.marketHistory[a.id]=[]); hist.push({t:Date.now(),p:a.price});
+          state.marketHistory[a.id]=hist.filter(pt=>pt.t>Date.now()-86400000).slice(-9000);
+        });
+        persistDemo(); renderMarket();
+      },10000);
+    }
+    function visibleHistory(assetId) {
+      const all=state.marketHistory[assetId]||[]; const cutoff=Date.now()-({"15m":900000,"1h":3600000,"1d":86400000}[state.marketRange]||3600000);
+      let points=all.filter(pt=>pt.t>=cutoff); if(points.length<2) points=all.slice(-30); return points;
+    }
+    function drawMarketChart() {
+      const canvas=$("marketChart"); if(!canvas) return;
+      const ctx=canvas.getContext("2d"); const rect=canvas.getBoundingClientRect(); const dpr=window.devicePixelRatio||1;
+      canvas.width=Math.max(300,Math.floor(rect.width*dpr)); canvas.height=Math.floor(210*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
+      const w=canvas.width/dpr,h=canvas.height/dpr,pad={l:12,r:12,t:14,b:20}; ctx.clearRect(0,0,w,h);
+      const asset=state.marketAssets.find(a=>String(a.id)===String(state.selectedAssetId))||state.marketAssets[0]; if(!asset) return;
+      const points=visibleHistory(asset.id); $("chartTitle").textContent=`${asset.symbol} · ${formatNumber(asset.price)} ✦`;
+      document.querySelectorAll("[data-range]").forEach(b=>b.classList.toggle("active",b.dataset.range===state.marketRange));
+      if(points.length<2){ctx.fillStyle="#b09aaa";ctx.fillText("Собираем историю цены…",pad.l,35);return;}
+      const vals=points.map(pt=>pt.p), min=Math.min(...vals),max=Math.max(...vals),span=Math.max(.01,max-min);
+      const x=i=>pad.l+(w-pad.l-pad.r)*(i/(points.length-1)); const y=v=>pad.t+(h-pad.t-pad.b)*(1-(v-min)/span);
+      ctx.strokeStyle="#42263f";ctx.lineWidth=1;for(let i=0;i<4;i++){const yy=pad.t+(h-pad.t-pad.b)*i/3;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();}
+      const grad=ctx.createLinearGradient(0,pad.t,0,h-pad.b);grad.addColorStop(0,"rgba(255,120,200,.28)");grad.addColorStop(1,"rgba(255,120,200,0)");
+      ctx.beginPath();points.forEach((pt,i)=>i?ctx.lineTo(x(i),y(pt.p)):ctx.moveTo(x(i),y(pt.p)));ctx.lineTo(x(points.length-1),h-pad.b);ctx.lineTo(x(0),h-pad.b);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+      ctx.beginPath();points.forEach((pt,i)=>i?ctx.lineTo(x(i),y(pt.p)):ctx.moveTo(x(i),y(pt.p)));ctx.strokeStyle="#ff78c8";ctx.lineWidth=2.2;ctx.stroke();
+      ctx.fillStyle="#cbb4c8";ctx.font="10px system-ui";ctx.fillText("MAX "+max.toFixed(2),pad.l,pad.t+2);ctx.fillText("MIN "+min.toFixed(2),pad.l,h-4);
+      $("chartLowHigh").textContent=`Мин ${min.toFixed(2)} ✦ · Макс ${max.toFixed(2)} ✦ · ${points.length} точек`;
+      $("chartUpdated").textContent="Обновлено: "+new Date(points[points.length-1].t).toLocaleTimeString("ru-RU");
+    }
+    function renderMarket() {
+      const list=$("assetList");
+      document.querySelectorAll("[data-market-tab]").forEach(b=>b.classList.toggle("active",b.dataset.marketTab===state.marketTab));
+      if(state.marketTab==="history") {
+        list.innerHTML=state.marketTransactions.length?state.marketTransactions.slice().reverse().map(t=>`<div class="asset-row"><div class="asset-name"><div class="asset-icon">${t.type==="buy"?"🟢":"🔴"}</div><div><strong>${escapeHtml(t.type==="buy"?"Покупка":"Продажа")} ${escapeHtml(t.symbol)}</strong><small>${new Date(t.time).toLocaleString("ru-RU")}</small></div></div><div class="asset-price"><strong>${formatNumber(t.total)} ✦</strong><small>${Number(t.quantity).toFixed(4)} шт.</small></div></div>`).join(""):'<div class="market-empty">История сделок пока пуста.</div>';
+        $("portfolioValue").textContent=formatNumber(portfolioTotal()); drawMarketChart(); return;
+      }
+      const assets=state.marketTab==="portfolio"?state.marketAssets.filter(a=>state.marketPortfolio.some(p=>String(p.asset_id??p.assetId??p.id)===String(a.id)&&Number(p.quantity??p.amount??p.units)>0)):state.marketAssets;
+      $("marketBalance").textContent=formatNumber(state.balance); $("marketAssetCount").textContent=formatNumber(state.marketAssets.length); $("portfolioValue").textContent=formatNumber(Math.round(portfolioTotal()));
+      document.querySelectorAll("[data-market-tab]").forEach(b=>b.classList.toggle("active",b.dataset.marketTab===state.marketTab));
+      if(!assets.length){list.innerHTML='<div class="market-empty">'+(state.marketTab==="portfolio"?"Портфель пуст. Купи первый актив.":"Активы не найдены.")+'</div>';drawMarketChart();return;}
+      list.innerHTML=assets.map(a=>`<div class="asset-row ${String(a.id)===String(state.selectedAssetId)?"selected":""}" data-select-asset="${escapeHtml(a.id)}"><div class="asset-name"><div class="asset-icon">${escapeHtml(a.icon)}</div><div><strong>${escapeHtml(a.name)}</strong><small>${escapeHtml(a.symbol)}</small></div></div><div class="asset-price"><strong>${Number(a.price).toFixed(2)} ✦</strong><small class="asset-change">${a.change>0?"+":""}${Number(a.change).toFixed(2)}%</small></div><div class="market-actions"><button class="btn btn-soft" data-trade="buy" data-asset="${escapeHtml(a.id)}">Купить</button><button class="btn btn-soft" data-trade="sell" data-asset="${escapeHtml(a.id)}">Продать</button></div></div>`).join("");
+      list.querySelectorAll("[data-select-asset]").forEach(row=>row.addEventListener("click",ev=>{if(ev.target.closest("button"))return;state.selectedAssetId=row.dataset.selectAsset;renderMarket();}));
+      list.querySelectorAll("[data-trade]").forEach(btn=>btn.addEventListener("click",()=>tradeAsset(btn.dataset.trade,btn.dataset.asset)));
+      drawMarketChart();
+    }
+    function portfolioTotal(){return state.marketPortfolio.reduce((sum,p)=>{const a=state.marketAssets.find(x=>String(x.id)===String(p.asset_id??p.assetId??p.id));return sum+(a?.price||0)*Number(p.quantity??p.amount??p.units??0);},0);}
+    function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+    async function tradeAsset(action,assetId){
+      const asset=state.marketAssets.find(a=>String(a.id)===String(assetId));if(!asset)return;
+      if(state.supabase){
+        try{const {data,error}=await state.supabase.functions.invoke("game",{body:{action:action==="buy"?"buy_asset":"sell_asset",assetId,quantity:1,initData:tg?.initData||""}});if(error)throw error;if(data?.error)throw new Error(data.error);if(Number.isFinite(Number(data?.balance)))state.balance=Number(data.balance);if(Array.isArray(data?.portfolio))state.marketPortfolio=data.portfolio;toast(action==="buy"?"Покупка подтверждена сервером":"Продажа подтверждена сервером");renderBalance();await loadMarket();return;}catch(e){console.error("Trade failed",e);toast("Supabase не подтвердил сделку. Баланс не изменён.");return;}
+      }
+      const raw=prompt((action==="buy"?"Купить ":"Продать ")+asset.symbol+" · цена "+asset.price.toFixed(2)+" ✦ за единицу. Количество:","1");if(raw===null)return;const qty=Number(raw);if(!Number.isFinite(qty)||qty<=0||qty>100000)return toast("Укажи корректное положительное количество.");
+      const existing=state.marketPortfolio.find(p=>String(p.asset_id)===String(asset.id));
+      if(action==="buy") {const cost=qty*asset.price;if(cost>state.balance)return toast("Недостаточно игровых очков.");state.balance-=cost;if(existing){const oldQty=Number(existing.quantity)||0;existing.avgPrice=((oldQty*(Number(existing.avgPrice)||asset.price))+(qty*asset.price))/(oldQty+qty);existing.quantity=oldQty+qty;}else state.marketPortfolio.push({asset_id:asset.id,quantity:qty,avgPrice:asset.price});}
+      else {if(!existing||Number(existing.quantity)<qty)return toast("В портфеле недостаточно этого актива.");existing.quantity=Number(existing.quantity)-qty;state.balance+=qty*asset.price;if(existing.quantity<=1e-8)state.marketPortfolio=state.marketPortfolio.filter(p=>p!==existing);}
+      state.marketTransactions.push({type:action,asset_id:asset.id,symbol:asset.symbol,quantity:qty,price:asset.price,total:qty*asset.price,time:Date.now()});state.marketTransactions=state.marketTransactions.slice(-500);persistDemo();renderBalance();renderMarket();toast(action==="buy"?"Актив куплен и сохранён в демо-портфеле.":"Актив продан. Баланс обновлён.");
+    }
+    document.querySelectorAll("[data-market-tab]").forEach(b=>b.addEventListener("click",()=>{state.marketTab=b.dataset.marketTab;renderMarket();}));
+    document.querySelectorAll("[data-range]").forEach(b=>b.addEventListener("click",()=>{state.marketRange=b.dataset.range;drawMarketChart();}));
+    window.addEventListener("resize",()=>{if(state.mode==="exchange")drawMarketChart();});
+    function claimDaily() {
+      if (state.demoDailyClaimed) return toast("Демо-бонус уже получен в этой сессии.");
+      state.demoDailyClaimed = true;
+      state.balance += 25;
+      persistDemo();
+      renderBalance();
+      toast("Демо-бонус +25 игровых очков!");
+      $("dailyButton").textContent = "Бонус получен ✓";
+      $("dailyButton").disabled = true;
+    }
+    function referral() {
+      if (!CONFIG.BOT_USERNAME || !state.telegramId) {
+        return toast("Для реферальной ссылки настройте BOT_USERNAME и проверку Telegram на сервере.");
+      }
+      const url = "https://t.me/" + CONFIG.BOT_USERNAME + "?start=ref_" + encodeURIComponent(state.telegramId);
+      if (tg?.openTelegramLink) tg.openTelegramLink(url);
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast("Ссылка скопирована")).catch(() => toast(url));
+      else toast(url);
+    }
+    function topup() {
+      toast("Stars-платежи ещё не подключены. Сначала настройте Telegram Bot Payments и webhook.");
+    }
+    function withdraw() {
+      toast("Вывод Stars не активирован. Доступность зависит от правил Telegram и платёжной схемы.");
+    }
+    async function initSupabase() {
+      if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY || !window.supabase) return;
+      try {
+        state.supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        // Не отправляйте initDataUnsafe как доказательство личности.
+        // Передавайте tg.initData на защищённую Edge Function для серверной проверки подписи.
+        const { data, error } = await state.supabase.functions.invoke("game", {
+          body: { action: "get_init_data", initData: tg?.initData || "" }
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        // Адаптируйте поля ниже под фактический ответ вашей Edge Function и схему Supabase.
+        if (Number.isFinite(Number(data?.balance))) state.balance = Number(data.balance);
+        if (data?.role) state.role = data.role;
+        if (data?.profile?.role) state.role = data.profile.role;
+        renderBalance(); renderProfile();
+        toast("Supabase подключён");
+      } catch (err) {
+        console.error("Supabase init failed:", err);
+        toast("Supabase не подключён: проверьте Edge Function и схему.");
+      }
+    }
+
+    document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => selectMode(b.dataset.mode,true)));
+    document.querySelectorAll(".nav-btn").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+    $("heroPlay").addEventListener("click", () => { setView("menu"); selectMode(state.mode,true); });
+    $("heroProfile").addEventListener("click", () => setView("profile"));
+    $("dailyButton").addEventListener("click", claimDaily);
+    $("refButton").addEventListener("click", referral);
+    $("topupButton").addEventListener("click", topup);
+    $("quickTopup").addEventListener("click", topup);
+    $("withdrawButton").addEventListener("click", withdraw);
+    document.querySelectorAll("[data-admin]").forEach(b => b.addEventListener("click", () => {
+      const section=b.dataset.admin;
+      if(section==="modes") { toast("Настройки симуляции доступны ниже. Боевые настройки меняются только через защищённый backend."); $("devCrashMax")?.scrollIntoView({behavior:"smooth",block:"center"}); }
+      else if(section==="roles") { const target=prompt("Telegram ID пользователя для назначения роли:"); if(!target)return; const role=prompt("Роль: admin или moderator"); if(!["admin","moderator"].includes(role))return toast("Допустимы только admin или moderator."); if(!state.supabase)return toast("Роль не сохранена: подключите защищённую Edge Function owner_set_role."); state.supabase.functions.invoke("game",{body:{action:"owner_set_role",targetTgId:target,newRole:role,initData:tg?.initData||""}}).then(({data,error})=>{if(error||data?.error)throw error||new Error(data?.error);toast("Роль обновлена сервером.");}).catch(()=>toast("Сервер не подтвердил назначение роли.")); }
+      else toast("Раздел «"+b.querySelector("strong").textContent+"» требует защищённой Edge Function и таблиц Supabase.");
+    }));
+    function renderDevSettings(){
+      if($("devCrashMax")){ $("devCrashMax").value=state.devSettings.crashMax; $("devCrashMaxLabel").textContent="×"+Number(state.devSettings.crashMax).toFixed(1); $("devCoinChance").value=state.devSettings.coinChance; $("devCoinChanceLabel").textContent=state.devSettings.coinChance+"%"; $("devMarketTrend").value=state.devSettings.marketTrend; $("devSimMode").value=state.devSettings.simMode; $("devStatus").classList.toggle("hidden",state.devSettings.simMode!=="controlled"); }
+    }
+    $("devCrashMax").addEventListener("input",e=>{state.devSettings.crashMax=Number(e.target.value);$("devCrashMaxLabel").textContent="×"+state.devSettings.crashMax.toFixed(1);persistDemo();});
+    $("devCoinChance").addEventListener("input",e=>{state.devSettings.coinChance=Number(e.target.value);$("devCoinChanceLabel").textContent=state.devSettings.coinChance+"%";persistDemo();});
+    $("devMarketTrend").addEventListener("change",e=>{state.devSettings.marketTrend=e.target.value;persistDemo();toast("Направление тестового графика изменено.");});
+    $("devSimMode").addEventListener("change",e=>{state.devSettings.simMode=e.target.value;persistDemo();$("devStatus").classList.toggle("hidden",state.devSettings.simMode!=="controlled");selectMode(state.mode,false);toast("Настройки демо-симуляции сохранены.");});
+
+    // Клиентская проверка ниже только управляет отображением.
+    // Реальные разрешения всегда должны проверяться на сервере.
+    if (state.telegramId === CONFIG.OWNER_TG_ID) {
+      // Не назначаем себе роль owner на клиенте: ждём подтверждённую роль от backend.
+      $("profileId").textContent = state.telegramId + " · ожидается проверка сервера";
+    }
+    renderBalance();
+    renderProfile();
+    selectMode("crash",false);
+    renderDevSettings();
+    initSupabase();
+  </script>
+</body>
+</html>
