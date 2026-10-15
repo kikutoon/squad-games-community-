@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07030d">
-<title>SQAD Game | Ecosystem</title>
+<title>SQAD Trading & Arcade</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root {
@@ -16,8 +16,8 @@
   --violet: #8d5cff;
   --cyan: #48dcff;
   --gold: #ffd45c;
-  --green: #2ecc71;
-  --red: #e74c3c;
+  --green: #00e676;
+  --red: #ff5252;
   --text: #ffffff;
   --muted: #a393b8;
 }
@@ -29,9 +29,10 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 
 /* SIDEBAR */
 .sidebar { width: 62px; background: rgba(13, 5, 25, 0.95); backdrop-filter: blur(15px); border-right: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 10px; position: fixed; top: 0; bottom: 60px; left: 0; z-index: 100; }
-.sidebar-item { width: 44px; height: 44px; border-radius: 12px; background: var(--panel); border: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+.sidebar-item { width: 44px; height: 44px; border-radius: 12px; background: var(--panel); border: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.15s; }
 .sidebar-item.active { background: linear-gradient(135deg, var(--pink), var(--violet)); border-color: #fff; box-shadow: 0 0 10px var(--pink-glow); }
 .sidebar-label { font-size: 8px; font-weight: 800; color: var(--muted); margin-top: 2px; }
+.sidebar-item.active .sidebar-label { color: #fff; }
 
 .main-content { margin-left: 62px; padding: 12px; }
 
@@ -61,6 +62,33 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 
 .input-field { width: 100%; background: #07030d; border: 1px solid var(--panel-border); border-radius: 10px; padding: 10px; color: #fff; font-weight: 700; outline: none; margin-bottom: 8px; }
 
+/* TRADING TERMINAL STYLE */
+.asset-selector { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+.asset-tab { flex: 0 0 auto; background: #07030d; border: 1px solid var(--panel-border); padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer; }
+.asset-tab.active { background: var(--pink); color: #fff; border-color: #fff; }
+
+.chart-container { position: relative; background: #05020a; border: 1px solid var(--panel-border); border-radius: 14px; padding: 10px; margin: 8px 0; }
+.chart-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.chart-price { font-size: 18px; font-weight: 900; color: var(--gold); }
+.chart-change { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
+.chart-change.up { background: rgba(0,230,118,0.2); color: var(--green); }
+.chart-change.down { background: rgba(255,82,82,0.2); color: var(--red); }
+
+canvas.main-chart { width: 100%; height: 170px; display: block; border-radius: 8px; }
+
+.trade-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.btn-trade-up { background: linear-gradient(90deg, #00c853, #00e676); border: 0; padding: 12px; border-radius: 12px; color: #000; font-weight: 900; font-size: 13px; cursor: pointer; }
+.btn-trade-down { background: linear-gradient(90deg, #d50000, #ff5252); border: 0; padding: 12px; border-radius: 12px; color: #fff; font-weight: 900; font-size: 13px; cursor: pointer; }
+
+/* CRASH ARENA */
+.crash-arena { height: 160px; background: radial-gradient(circle at bottom left, #1a082d 0%, #05020a 100%); border-radius: 14px; border: 1px solid var(--panel-border); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.crash-mult { font-size: 38px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 12px rgba(72,220,255,0.5); z-index: 2; }
+.rocket { position: absolute; bottom: 12px; left: 12px; font-size: 32px; transition: all 0.15s ease-out; z-index: 2; transform: rotate(45deg); }
+
+.bet-input-wrap { display: flex; gap: 6px; margin-top: 6px; }
+.bet-input { flex: 1; background: #07030d; border: 1px solid var(--panel-border); border-radius: 8px; padding: 8px; color: var(--gold); font-weight: 900; font-size: 14px; outline: none; }
+.bet-btn { background: #1c0b30; border: 1px solid var(--panel-border); color: #fff; border-radius: 8px; padding: 6px 8px; font-weight: 800; font-size: 10px; cursor: pointer; }
+
 /* NAV BAR */
 .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: rgba(7,3,13,0.96); backdrop-filter: blur(15px); border-top: 1px solid var(--panel-border); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
 .nav-item { background: none; border: 0; color: var(--muted); font-size: 10px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; flex: 1; }
@@ -72,7 +100,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 
 <div id="app">
   <aside class="sidebar">
-    <div class="sidebar-item active" id="side-home" onclick="openScreen('home')">🏠<span class="sidebar-label">Меню</span></div>
+    <div class="sidebar-item active" id="side-home" onclick="openScreen('home')">🏠<span class="sidebar-label">Главная</span></div>
     <div class="sidebar-item" id="side-market" onclick="openScreen('market')">📊<span class="sidebar-label">Биржа</span></div>
     <div class="sidebar-item" id="side-crash" onclick="openScreen('crash')">🚀<span class="sidebar-label">Crash</span></div>
     <div class="sidebar-item" id="side-tiktok" onclick="openScreen('tiktok')">🎥<span class="sidebar-label">TikTok</span></div>
@@ -80,7 +108,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 
   <main class="main-content">
     <header class="header">
-      <div class="brand" onclick="openAdminIfStaff()">SQAD <span>GAME</span><small id="roleBadge">PLAYER</small></div>
+      <div class="brand" onclick="openAdminIfStaff()">SQAD <span>TRADE</span><small id="roleBadge">PLAYER</small></div>
       <div class="balance-chip" onclick="openScreen('profile')">
         <span class="balance-num" id="balVal">100 Pts</span>
       </div>
@@ -89,257 +117,78 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
     <!-- ГЛАВНАЯ -->
     <section id="home" class="screen active">
       <div class="hero-card">
-        <div style="font-size:9px;color:var(--pink);font-weight:900;letter-spacing:1px">SQAD ULTIMATE ECOSYSTEM</div>
-        <div style="font-size:18px;font-weight:900;margin:4px 0">Фарми баллы и снимай ролики!</div>
-        <div style="font-size:10px;color:var(--muted)">Снимай TikTok/Shorts и получай Секретный Кейс.</div>
+        <div style="font-size:9px;color:var(--pink);font-weight:900;letter-spacing:1px">SQAD ULTIMATE MARKET & CRASH</div>
+        <div style="font-size:18px;font-weight:900;margin:4px 0">Торгуй активаями и забирай Х-ы!</div>
+        <div style="font-size:10px;color:var(--muted)">Настоящие графики цен и мгновенный расчет сделок.</div>
       </div>
 
-      <!-- БАННЕР TIKTOK CASE -->
+      <!-- БАННЕР TIKTOK -->
       <div style="background:linear-gradient(135deg, #2b0938, #0f051c);border:1px solid var(--pink);border-radius:16px;padding:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:12px;font-weight:900;color:var(--gold)">🎁 SQAD TikTok Case</div>
-          <div style="font-size:9px;color:var(--muted)">Получи до +500 Pts за ролик!</div>
+          <div style="font-size:9px;color:var(--muted)">Сними ролик и получи +500 Pts!</div>
         </div>
         <button class="btn-primary" style="width:auto;margin:0;padding:8px 12px;font-size:11px" onclick="openScreen('tiktok')">СНЯТЬ</button>
       </div>
 
-      <div class="section-title">🔥 Игровые Режимы</div>
+      <div class="section-title">🔥 Терминалы Игр</div>
       <div class="grid">
         <div class="card" onclick="openScreen('market')">
           <div class="card-icon">📊</div>
-          <div class="card-title">Биржа</div>
-          <div class="card-sub">Акции и риски</div>
+          <div class="card-title">Биржа SQAD</div>
+          <div class="card-sub">Трейдинг и графики</div>
         </div>
         <div class="card" onclick="openScreen('crash')">
           <div class="card-icon">🚀</div>
-          <div class="card-title">Crash</div>
+          <div class="card-title">Rocket Crash</div>
           <div class="card-sub">Взлет ракеты</div>
         </div>
       </div>
     </section>
 
-    <!-- ЭКРАН TIKTOK CASE -->
-    <section id="tiktok" class="screen">
-      <div class="section-title">🎥 Задание: TikTok / Reels Case</div>
-      <div class="game-box" style="text-align:left">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
-          1. Сними ролик про SQAD (как играешь в Краш или Биржу).<br>
-          2. Добавь хэштег <b>#SQADGAME</b>.<br>
-          3. Отправь ссылку ниже — после проверки начислим <b>+500 Pts</b>!
-        </div>
-        <input type="text" id="ttUrlInput" class="input-field" placeholder="https://vt.tiktok.com/...">
-        <button class="btn-primary" onclick="submitTikTok()">ОТПРАВИТЬ НА ПРОВЕРКУ</button>
-      </div>
-    </section>
-
-    <!-- БИРЖА -->
+    <!-- БИРЖА (БИРЖЕВОЙ ТЕРМИНАЛ КАК В POCKET OPTION) -->
     <section id="market" class="screen">
-      <div class="section-title">📊 Биржа SQAD Market</div>
-      <div class="game-box" style="text-align:left">
-        <div style="font-size:13px;font-weight:900;color:var(--gold)">$SAFE Token</div>
-        <div style="font-size:10px;color:var(--muted)">Низкий риск (10.5 Pts)</div>
-        <button class="btn-primary" onclick="alert('Куплено 1 $SAFE')">КУПИТЬ (10.5 Pts)</button>
-      </div>
-    </section>
-
-    <!-- CRASH -->
-    <section id="crash" class="screen">
-      <div class="section-title">🚀 SQAD Rocket Crash</div>
-      <div class="game-box">
-        <div style="font-size:32px;font-weight:900;color:var(--cyan);margin:20px 0">🚀 CRASH ARENA</div>
-        <button class="btn-primary" onclick="alert('Ракета готова к запуску!')">ПОЕХАЛИ!</button>
-      </div>
-    </section>
-
-    <!-- АДМИН-ПАНЕЛЬ -->
-    <section id="admin" class="screen">
-      <div class="section-title">👑 Панель Управления</div>
+      <div class="section-title">📊 Биржевой Терминал SQAD</div>
       
-      <!-- Вкладка 1: Проверка TikTok -->
-      <div class="game-box" style="text-align:left;margin-bottom:10px">
-        <div style="font-weight:900;color:var(--gold);margin-bottom:6px">🎥 Модерация TikTok Роликов</div>
-        <div id="adminTikTokList" style="font-size:11px;color:var(--muted)">Загрузка заявок...</div>
+      <!-- Выбор Актива -->
+      <div class="asset-selector">
+        <div class="asset-tab active" onclick="selectAsset('SAFE')">$SAFE</div>
+        <div class="asset-tab" onclick="selectAsset('STABLE')">$STABLE</div>
+        <div class="asset-tab" onclick="selectAsset('TREND')">$TREND</div>
+        <div class="asset-tab" onclick="selectAsset('HAZARD')">$HAZARD</div>
       </div>
 
-      <!-- Вкладка 2: Включение режимов -->
-      <div class="game-box" style="text-align:left;margin-bottom:10px">
-        <div style="font-weight:900;color:var(--gold);margin-bottom:6px">🕹️ Управление Режимами</div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span>🚀 Rocket Crash</span>
-          <button class="btn-primary" style="width:auto;margin:0;padding:4px 8px" onclick="toggleGame('crash', true)">ВКЛ</button>
+      <!-- Контейнер Графика -->
+      <div class="chart-container">
+        <div class="chart-info">
+          <div>
+            <span style="font-size:11px;font-weight:900;color:var(--muted)" id="activeAssetName">$SAFE Token</span>
+            <div class="chart-price" id="activeAssetPrice">10.00 Pts</div>
+          </div>
+          <span class="chart-change up" id="activeAssetChange">+2.5%</span>
         </div>
-        <div style="display:flex;justify-content:space-between">
-          <span>📊 Биржа Market</span>
-          <button class="btn-primary" style="width:auto;margin:0;padding:4px 8px" onclick="toggleGame('market', true)">ВКЛ</button>
+        <canvas id="liveChart" class="main-chart"></canvas>
+      </div>
+
+      <!-- Панель управления сделкой -->
+      <div class="game-box" style="text-align:left;padding:12px">
+        <div style="font-size:9px;color:var(--muted);font-weight:800">СУММА СДЕЛКИ (Pts):</div>
+        <div class="bet-input-wrap" style="margin-bottom:8px">
+          <input type="number" id="tradeAmount" class="bet-input" value="10" min="1">
+          <button class="bet-btn" onclick="setTradeAmount(10)">10</button>
+          <button class="bet-btn" onclick="setTradeAmount(50)">50</button>
+          <button class="bet-btn" onclick="setTradeAmount(100)">100</button>
+        </div>
+
+        <div class="trade-controls">
+          <button class="btn-trade-up" onclick="executeTrade('buy')">КУПИТЬ ⬆</button>
+          <button class="btn-trade-down" onclick="executeTrade('sell')">ПРОДАТЬ ⬇</button>
         </div>
       </div>
 
-      <!-- Вкладка 3: Выдача ролей (Owner Only) -->
-      <div class="game-box" style="text-align:left" id="ownerRoleBox">
-        <div style="font-weight:900;color:var(--gold);margin-bottom:6px">👑 Выдача Ролей (Owner Only)</div>
-        <input type="text" id="roleTgId" class="input-field" placeholder="Telegram ID пользователя">
-        <select id="roleSelect" class="input-field">
-          <option value="moderator">Модератор</option>
-          <option value="admin">Администратор</option>
-          <option value="player">Игрок (Снять роль)</option>
-        </select>
-        <button class="btn-primary" onclick="assignRole()">НАЗНАЧИТЬ РОЛЬ</button>
-      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px">Портфель: <b style="color:#fff" id="portfolioCount">0 акций</b></div>
     </section>
 
-    <!-- ПРОФИЛЬ -->
-    <section id="profile" class="screen">
-      <div class="section-title">👤 Профиль участника</div>
-      <div class="game-box" style="text-align:left">
-        <div style="font-weight:900;font-size:15px" id="profName">Игрок</div>
-        <div style="font-size:10px;color:var(--muted)" id="profRole">Роль: Игрок</div>
-        <div style="font-size:20px;font-weight:900;color:var(--gold);margin-top:10px" id="profBalance">100 Pts</div>
-      </div>
-    </section>
-  </main>
-
-  <nav class="nav-bar">
-    <button class="nav-item active" id="navHome" onclick="openScreen('home')"><i>🏠</i>Главная</button>
-    <button class="nav-item" id="navProfile" onclick="openScreen('profile')"><i>👤</i>Профиль</button>
-  </nav>
-</div>
-
-<script>
-const SQAD_CONFIG = {
-  gameUrl: 'https://kkmanstpvlluaykwlmml.supabase.co/functions/v1/game'
-};
-
-let tg = window.Telegram?.WebApp || null;
-let balance = 100;
-let userRole = 'player';
-let isStaffUser = false;
-
-function openScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id)?.classList.add('active');
-
-  document.querySelectorAll('.sidebar-item').forEach(e => e.classList.remove('active'));
-  document.getElementById('side-' + id)?.classList.add('active');
-}
-
-async function apiCall(action, extra = {}) {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3500);
-    const res = await fetch(SQAD_CONFIG.gameUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData: tg?.initData || '', action, ...extra }),
-      signal: controller.signal
-    }).finally(() => clearTimeout(timeout));
-    return await res.json();
-  } catch (e) {
-    return { ok: false };
-  }
-}
-
-async function submitTikTok() {
-  const url = document.getElementById('ttUrlInput')?.value;
-  if (!url) { alert('Вставьте ссылку!'); return; }
-  const res = await apiCall('submit_tiktok', { videoUrl: url });
-  if (res.ok) {
-    alert('Ролик отправлен на модерацию!');
-    document.getElementById('ttUrlInput').value = '';
-  } else {
-    alert('Отправлено на модерацию!');
-  }
-}
-
-function openAdminIfStaff() {
-  if (isStaffUser || userRole === 'owner') {
-    openScreen('admin');
-    loadAdminTikToks();
-  } else {
-    alert("SQAD Game v3.0");
-  }
-}
-
-async function loadAdminTikToks() {
-  const container = document.getElementById('adminTikTokList');
-  if (!container) return;
-  const res = await apiCall('admin_get_tiktoks');
-  if (res.ok && res.submissions?.length > 0) {
-    container.innerHTML = res.submissions.map(sub => `
-      <div style="background:#000;padding:8px;border-radius:8px;margin-bottom:6px">
-        <div style="font-size:10px;color:var(--cyan)">@${sub.profiles?.username || 'user'}</div>
-        <a href="${sub.video_url}" target="_blank" style="color:#fff;font-size:9px;word-break:break-all">${sub.video_url}</a>
-        <div style="display:flex;gap:4px;margin-top:4px">
-          <button style="background:var(--green);border:0;padding:4px;border-radius:4px;font-size:9px;font-weight:900" onclick="reviewTT('${sub.id}', 'approved')">ОДОБРИТЬ (+500 Pts)</button>
-          <button style="background:var(--red);border:0;padding:4px;border-radius:4px;color:#fff;font-size:9px;font-weight:900" onclick="reviewTT('${sub.id}', 'rejected')">ОТКЛОНИТЬ</button>
-        </div>
-      </div>
-    `).join('');
-  } else {
-    container.innerHTML = 'Нет новых видео на проверку.';
-  }
-}
-
-async function reviewTT(submissionId, status) {
-  const res = await apiCall('admin_review_tiktok', { submissionId, status });
-  loadAdminTikToks();
-}
-
-async function toggleGame(gameKey, isEnabled) {
-  const res = await apiCall('admin_toggle_game', { gameKey, isEnabled });
-  alert('Состояние режима обновлено!');
-}
-
-async function assignRole() {
-  const targetTgId = document.getElementById('roleTgId')?.value;
-  const newRole = document.getElementById('roleSelect')?.value;
-  if (!targetTgId) { alert('Введите TG ID!'); return; }
-  const res = await apiCall('owner_set_role', { targetTgId, newRole });
-  alert('Роль изменена!');
-}
-
-function initDataAsync() {
-  try {
-    if (tg?.initDataUnsafe?.user) {
-      const u = tg.initDataUnsafe.user;
-      if (String(u.id) === '1229294243') {
-        userRole = 'owner';
-        isStaffUser = true;
-      }
-    }
-  } catch(e){}
-
-  apiCall('get_init_data').then(res => {
-    if (res.ok) {
-      balance = res.points || balance;
-      userRole = res.role || userRole;
-      isStaffUser = res.isStaff || (userRole === 'owner');
-
-      const elBal1 = document.getElementById('balVal');
-      const elBal2 = document.getElementById('profBalance');
-      const elRole1 = document.getElementById('roleBadge');
-      const elRole2 = document.getElementById('profRole');
-
-      if (elBal1) elBal1.textContent = balance + ' Pts';
-      if (elBal2) elBal2.textContent = balance + ' Pts';
-      if (elRole1) elRole1.textContent = userRole.toUpperCase();
-      if (elRole2) elRole2.textContent = 'Роль: ' + userRole.toUpperCase();
-
-      if (userRole !== 'owner') {
-        const box = document.getElementById('ownerRoleBox');
-        if (box) box.style.display = 'none';
-      }
-    }
-  });
-}
-
-function init() {
-  try {
-    if (tg) { tg.ready(); tg.expand(); }
-  } catch(e){}
-  initDataAsync();
-}
-
-init();
-</script>
-</body>
-</html>
+    <!-- ИГРА: ROCKET CRASH -->
+    <section id="crash" class="screen">
+      <div
