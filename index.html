@@ -315,4 +315,138 @@ async function doRecharge(amount) {
 function shareRefLink() {
   const link = document.getElementById('refLink').textContent;
   if (tg?.openTelegramLink) {
-    tg.openTelegramLink('https://t.me/share/url?url=' +
+    tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Залетай в SQAD аркаду, фарми баллы и забирай призы! 🔥'));
+  } else {
+    navigator.clipboard?.writeText(link).then(() => alert('Ссылка скопирована!'));
+  }
+}
+
+/* CRASH GAME */
+let crashState = 'idle';
+let crashMult = 1.00;
+let crashTimer = null;
+let currentBet = 0;
+
+function handleCrash() {
+  const btn = document.getElementById('crashBtn');
+  const multEl = document.getElementById('crashMult');
+  const statEl = document.getElementById('crashStatus');
+  const rocket = document.getElementById('rocketIcon');
+  const betInput = document.getElementById('crashBetInput');
+
+  if (crashState === 'idle') {
+    currentBet = parseInt(betInput.value) || 0;
+    if (currentBet <= 0) { alert('Укажите ставку!'); return; }
+    if (balance < currentBet) { alert('Недостаточно баллов!'); return; }
+
+    balance -= currentBet;
+    updateBal();
+
+    crashState = 'flying';
+    crashMult = 1.00;
+    btn.textContent = 'ЗАБРАТЬ!';
+    btn.style.background = 'linear-gradient(90deg, #ffd45c, #ff9d00)';
+    btn.style.color = '#000';
+    statEl.textContent = 'Ракета летит...';
+    rocket.textContent = '🚀';
+
+    const crashPoint = (Math.random() < 0.25) ? 1.00 : +(1.05 + Math.random() * 3.8).toFixed(2);
+    let posX = 15, posY = 15;
+
+    crashTimer = setInterval(() => {
+      crashMult += 0.04;
+      multEl.textContent = crashMult.toFixed(2) + 'x';
+      posX = Math.min(posX + 2, 80);
+      posY = Math.min(posY + 2.5, 70);
+      rocket.style.left = posX + '%';
+      rocket.style.bottom = posY + '%';
+
+      if (crashMult >= crashPoint) {
+        clearInterval(crashTimer);
+        crashState = 'idle';
+        btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
+        btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
+        btn.style.color = '#fff';
+        rocket.textContent = '💥';
+        statEl.textContent = 'КРАШ НА ' + crashMult.toFixed(2) + 'x!';
+        multEl.style.color = '#ff3f4d';
+
+        setTimeout(() => {
+          rocket.style.left = '15%';
+          rocket.style.bottom = '15%';
+          rocket.textContent = '🚀';
+          multEl.style.color = 'var(--cyan)';
+          multEl.textContent = '1.00x';
+          statEl.textContent = 'Сделайте ставку и запустите ракету';
+        }, 2000);
+      }
+    }, 120);
+
+  } else if (crashState === 'flying') {
+    clearInterval(crashTimer);
+    const win = Math.floor(currentBet * crashMult);
+    balance += win;
+    updateBal();
+
+    crashState = 'idle';
+    btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
+    btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
+    btn.style.color = '#fff';
+    statEl.textContent = 'ВЫИГРЫШ +' + win + ' Pts!';
+  }
+}
+
+function doTap() {
+  balance += 1; updateBal();
+  document.getElementById('tapCount').textContent = parseInt(document.getElementById('tapCount').textContent) + 1;
+}
+
+function bidAuction(step) {
+  if (balance < step) { alert('Недостаточно баллов!'); return; }
+  balance -= step; updateBal();
+  document.getElementById('aucBid').textContent = (parseInt(document.getElementById('aucBid').textContent) + step) + ' Pts';
+}
+
+function spinWheel() {
+  if (balance < 15) { alert('Недостаточно баллов!'); return; }
+  balance -= 15;
+  const rewards = [0, 5, 15, 30];
+  const win = rewards[Math.floor(Math.random() * rewards.length)];
+  balance += win; updateBal();
+  document.getElementById('wheelRes').textContent = win > 0 ? ('+ ' + win + ' Pts') : 'Мимо!';
+}
+
+async function init() {
+  if (!tg || !tg.initData) {
+    document.getElementById('notTg').style.display = 'block';
+    return;
+  }
+  tg.ready(); tg.expand();
+  document.getElementById('app').style.display = 'block';
+
+  if (tg.initDataUnsafe?.user) {
+    const u = tg.initDataUnsafe.user;
+    userTelegramId = String(u.id);
+    document.getElementById('profName').textContent = u.first_name + (u.last_name ? ' ' + u.last_name : '');
+    document.getElementById('profId').textContent = 'ID: ' + u.id;
+    
+    const botUsername = 'sqad_tolyatti_bot'; // Впиши сюда юзернейм своего бота
+    document.getElementById('refLink').textContent = `https://t.me/${botUsername}?start=${userTelegramId}`;
+  }
+
+  let refCode = null;
+  if (tg.initDataUnsafe?.start_param) {
+    refCode = tg.initDataUnsafe.start_param;
+  }
+
+  const res = await apiCall('get_balance', { refCode });
+  if (res.ok && res.balance) {
+    balance = Number(res.balance.points || 100);
+  }
+  updateBal();
+}
+
+init();
+</script>
+</body>
+</html>
