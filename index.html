@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07030d">
-<title>SQAD Trading & Arcade</title>
+<title>SQAD Trade & Arcade</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root {
@@ -30,6 +30,7 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 /* SIDEBAR */
 .sidebar { width: 62px; background: rgba(13, 5, 25, 0.95); backdrop-filter: blur(15px); border-right: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 10px; position: fixed; top: 0; bottom: 60px; left: 0; z-index: 100; }
 .sidebar-item { width: 44px; height: 44px; border-radius: 12px; background: var(--panel); border: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.15s; }
+.sidebar-item:active { transform: scale(0.92); }
 .sidebar-item.active { background: linear-gradient(135deg, var(--pink), var(--violet)); border-color: #fff; box-shadow: 0 0 10px var(--pink-glow); }
 .sidebar-label { font-size: 8px; font-weight: 800; color: var(--muted); margin-top: 2px; }
 .sidebar-item.active .sidebar-label { color: #fff; }
@@ -53,12 +54,14 @@ html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); f
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px; padding: 12px; cursor: pointer; }
+.card:active { transform: scale(0.96); border-color: var(--pink); }
 .card-icon { font-size: 24px; margin-bottom: 4px; }
 .card-title { font-weight: 900; font-size: 12px; }
 .card-sub { font-size: 9px; color: var(--muted); margin-top: 2px; }
 
 .game-box { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; padding: 14px; text-align: center; }
 .btn-primary { width: 100%; padding: 12px; border: 0; border-radius: 12px; background: linear-gradient(90deg, var(--pink), var(--violet)); color: #fff; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px var(--pink-glow); margin-top: 10px; }
+.btn-primary:active { transform: scale(0.97); }
 
 .input-field { width: 100%; background: #07030d; border: 1px solid var(--panel-border); border-radius: 10px; padding: 10px; color: #fff; font-weight: 700; outline: none; margin-bottom: 8px; }
 
@@ -118,8 +121,8 @@ canvas.main-chart { width: 100%; height: 170px; display: block; border-radius: 8
     <section id="home" class="screen active">
       <div class="hero-card">
         <div style="font-size:9px;color:var(--pink);font-weight:900;letter-spacing:1px">SQAD ULTIMATE MARKET & CRASH</div>
-        <div style="font-size:18px;font-weight:900;margin:4px 0">Торгуй активаями и забирай Х-ы!</div>
-        <div style="font-size:10px;color:var(--muted)">Настоящие графики цен и мгновенный расчет сделок.</div>
+        <div style="font-size:18px;font-weight:900;margin:4px 0">Торгуй активами и забирай Х-ы!</div>
+        <div style="font-size:10px;color:var(--muted)">Живые графики цен и мгновенный расчет сделок.</div>
       </div>
 
       <!-- БАННЕР TIKTOK -->
@@ -146,16 +149,16 @@ canvas.main-chart { width: 100%; height: 170px; display: block; border-radius: 8
       </div>
     </section>
 
-    <!-- БИРЖА (БИРЖЕВОЙ ТЕРМИНАЛ КАК В POCKET OPTION) -->
+    <!-- БИРЖА (POCKET OPTION STYLE) -->
     <section id="market" class="screen">
       <div class="section-title">📊 Биржевой Терминал SQAD</div>
       
       <!-- Выбор Актива -->
       <div class="asset-selector">
-        <div class="asset-tab active" onclick="selectAsset('SAFE')">$SAFE</div>
-        <div class="asset-tab" onclick="selectAsset('STABLE')">$STABLE</div>
-        <div class="asset-tab" onclick="selectAsset('TREND')">$TREND</div>
-        <div class="asset-tab" onclick="selectAsset('HAZARD')">$HAZARD</div>
+        <div class="asset-tab active" id="tab-SAFE" onclick="selectAsset('SAFE')">$SAFE</div>
+        <div class="asset-tab" id="tab-STABLE" onclick="selectAsset('STABLE')">$STABLE</div>
+        <div class="asset-tab" id="tab-TREND" onclick="selectAsset('TREND')">$TREND</div>
+        <div class="asset-tab" id="tab-HAZARD" onclick="selectAsset('HAZARD')">$HAZARD</div>
       </div>
 
       <!-- Контейнер Графика -->
@@ -170,7 +173,7 @@ canvas.main-chart { width: 100%; height: 170px; display: block; border-radius: 8
         <canvas id="liveChart" class="main-chart"></canvas>
       </div>
 
-      <!-- Панель управления сделкой -->
+      <!-- Управление сделкой -->
       <div class="game-box" style="text-align:left;padding:12px">
         <div style="font-size:9px;color:var(--muted);font-weight:800">СУММА СДЕЛКИ (Pts):</div>
         <div class="bet-input-wrap" style="margin-bottom:8px">
@@ -186,9 +189,306 @@ canvas.main-chart { width: 100%; height: 170px; display: block; border-radius: 8
         </div>
       </div>
 
-      <div style="font-size:10px;color:var(--muted);margin-top:8px">Портфель: <b style="color:#fff" id="portfolioCount">0 акций</b></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px">В портфеле: <b style="color:#fff" id="portfolioCount">0 акций</b></div>
     </section>
 
-    <!-- ИГРА: ROCKET CRASH -->
+    <!-- ROCKET CRASH -->
     <section id="crash" class="screen">
-      <div
+      <div class="section-title">🚀 SQAD Rocket Crash</div>
+      <div class="game-box">
+        <div class="crash-arena">
+          <div class="crash-mult" id="crashMult">1.00x</div>
+          <div id="crashStatus" style="font-size:10px;color:var(--muted);z-index:2;margin-top:2px">Сделайте ставку и запустите ракету</div>
+          <div class="rocket" id="rocketIcon">🚀</div>
+        </div>
+
+        <div style="margin-top:10px;text-align:left">
+          <div style="font-size:9px;color:var(--muted);font-weight:800">РАЗМЕР СТАВКИ (Pts):</div>
+          <div class="bet-input-wrap">
+            <input type="number" id="crashBetInput" class="bet-input" value="10" min="1">
+            <button class="bet-btn" onclick="setBet(10)">10</button>
+            <button class="bet-btn" onclick="setBet(50)">50</button>
+            <button class="bet-btn" onclick="setBet(100)">100</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="crashBtn" onclick="handleCrash()">ПОЕХАЛИ! (СТАВКА)</button>
+      </div>
+    </section>
+
+    <!-- TIKTOK -->
+    <section id="tiktok" class="screen">
+      <div class="section-title">🎥 Задание: TikTok Case</div>
+      <div class="game-box" style="text-align:left">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
+          1. Сними видео про то как играешь в SQAD.<br>
+          2. Добавь хэштег <b>#SQADGAME</b>.<br>
+          3. Вставь ссылку ниже и получи <b>+500 Pts</b>!
+        </div>
+        <input type="text" id="ttUrlInput" class="input-field" placeholder="https://vt.tiktok.com/...">
+        <button class="btn-primary" onclick="submitTikTok()">ОТПРАВИТЬ ССЫЛКУ</button>
+      </div>
+    </section>
+
+    <!-- АДМИН ПАНЕЛЬ -->
+    <section id="admin" class="screen">
+      <div class="section-title">👑 Панель Управления Владельца</div>
+      <div class="game-box" style="text-align:left;margin-bottom:10px">
+        <div style="font-weight:900;color:var(--gold);margin-bottom:6px">🎥 Модерация TikTok</div>
+        <div id="adminTikTokList" style="font-size:11px;color:var(--muted)">Загрузка заявок...</div>
+      </div>
+    </section>
+
+    <!-- ПРОФИЛЬ -->
+    <section id="profile" class="screen">
+      <div class="section-title">👤 Профиль участника</div>
+      <div class="game-box" style="text-align:left">
+        <div style="font-weight:900;font-size:15px" id="profName">Игрок</div>
+        <div style="font-size:10px;color:var(--muted)" id="profRole">Роль: PLAYER</div>
+        <div style="font-size:20px;font-weight:900;color:var(--gold);margin-top:10px" id="profBalance">100 Pts</div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-bar">
+    <button class="nav-item active" id="navHome" onclick="openScreen('home')"><i>🏠</i>Главная</button>
+    <button class="nav-item" id="navProfile" onclick="openScreen('profile')"><i>👤</i>Профиль</button>
+  </nav>
+</div>
+
+<script>
+const SQAD_CONFIG = {
+  gameUrl: 'https://kkmanstpvlluaykwlmml.supabase.co/functions/v1/game'
+};
+
+let tg = window.Telegram?.WebApp || null;
+let balance = 100;
+let userRole = 'player';
+let isStaffUser = false;
+
+/* БИРЖЕВОЙ ДВИЖОК */
+let currentAsset = 'SAFE';
+const assetsData = {
+  SAFE: { name: 'SAFE Token', price: 10.00, change: 2.5, history: [9.5, 9.8, 9.7, 10.0, 10.1, 10.0] },
+  STABLE: { name: 'STABLE Core', price: 25.00, change: 5.1, history: [23.5, 24.0, 24.5, 24.8, 25.0] },
+  TREND: { name: 'TREND Pulse', price: 48.00, change: -4.2, history: [52.0, 50.5, 49.0, 48.5, 48.0] },
+  HAZARD: { name: 'HAZARD X', price: 110.00, change: 35.0, history: [70.0, 85.0, 95.0, 100.0, 110.0] }
+};
+const userPortfolio = { SAFE: 0, STABLE: 0, TREND: 0, HAZARD: 0 };
+
+function openScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+
+  document.querySelectorAll('.sidebar-item').forEach(e => e.classList.remove('active'));
+  document.getElementById('side-' + id)?.classList.add('active');
+
+  document.getElementById('navHome')?.classList.toggle('active', id === 'home');
+  document.getElementById('navProfile')?.classList.toggle('active', id === 'profile');
+
+  if (id === 'market') drawMainChart();
+}
+
+function setTradeAmount(val) { document.getElementById('tradeAmount').value = val; }
+function setBet(val) { document.getElementById('crashBetInput').value = val; }
+
+function selectAsset(id) {
+  currentAsset = id;
+  document.querySelectorAll('.asset-tab').forEach(t => t.classList.remove('active'));
+  const activeTab = document.getElementById('tab-' + id);
+  if (activeTab) activeTab.classList.add('active');
+
+  const asset = assetsData[id];
+  if (asset) {
+    document.getElementById('activeAssetName').textContent = asset.name;
+    document.getElementById('activeAssetPrice').textContent = asset.price.toFixed(2) + ' Pts';
+    
+    const chgEl = document.getElementById('activeAssetChange');
+    chgEl.textContent = (asset.change >= 0 ? '+' : '') + asset.change + '%';
+    chgEl.className = 'chart-change ' + (asset.change >= 0 ? 'up' : 'down');
+  }
+  
+  document.getElementById('portfolioCount').textContent = (userPortfolio[id] || 0) + ' акций';
+  drawMainChart();
+}
+
+function drawMainChart() {
+  const canvas = document.getElementById('liveChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth || 300;
+  const h = canvas.height = canvas.offsetHeight || 170;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Сетка PocketOption
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for(let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for(let y = 0; y < h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  const history = assetsData[currentAsset]?.history || [10, 11, 10];
+  const min = Math.min(...history) * 0.95;
+  const max = Math.max(...history) * 1.05;
+  const range = max - min || 1;
+
+  // Линия графика
+  ctx.beginPath();
+  const isUp = (assetsData[currentAsset]?.change || 0) >= 0;
+  ctx.strokeStyle = isUp ? '#00e676' : '#ff5252';
+  ctx.lineWidth = 3;
+
+  history.forEach((val, i) => {
+    const x = (i / (history.length - 1)) * w;
+    const y = h - ((val - min) / range) * (h - 20) - 10;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Неоновая точка
+  const lastX = w;
+  const lastY = h - ((history[history.length - 1] - min) / range) * (h - 20) - 10;
+  ctx.beginPath();
+  ctx.arc(lastX - 4, lastY, 5, 0, Math.PI * 2);
+  ctx.fillStyle = isUp ? '#00e676' : '#ff5252';
+  ctx.fill();
+}
+
+function executeTrade(type) {
+  const amt = parseInt(document.getElementById('tradeAmount').value) || 10;
+  const price = assetsData[currentAsset].price;
+
+  if (type === 'buy') {
+    if (balance < amt) { alert('Недостаточно Pts!'); return; }
+    balance -= amt;
+    userPortfolio[currentAsset] += Math.max(1, Math.floor(amt / price));
+    alert('Успешно куплено!');
+  } else {
+    if ((userPortfolio[currentAsset] || 0) <= 0) { alert('У вас нет акций этого актива!'); return; }
+    const gain = Math.floor(userPortfolio[currentAsset] * price);
+    balance += gain;
+    userPortfolio[currentAsset] = 0;
+    alert('Акции проданы! Получено +' + gain + ' Pts');
+  }
+
+  updateBal();
+  document.getElementById('portfolioCount').textContent = (userPortfolio[currentAsset] || 0) + ' акций';
+}
+
+function updateBal() {
+  document.getElementById('balVal').textContent = balance + ' Pts';
+  document.getElementById('profBalance').textContent = balance + ' Pts';
+}
+
+/* ROCKET CRASH ENGINE */
+let crashState = 'idle', crashMult = 1.00, crashTimer = null, currentBet = 0;
+
+function handleCrash() {
+  const btn = document.getElementById('crashBtn');
+  const multEl = document.getElementById('crashMult');
+  const statEl = document.getElementById('crashStatus');
+  const rocket = document.getElementById('rocketIcon');
+  const betInput = document.getElementById('crashBetInput');
+
+  if (crashState === 'idle') {
+    currentBet = parseInt(betInput.value) || 0;
+    if (currentBet <= 0) { alert('Укажите ставку!'); return; }
+    if (balance < currentBet) { alert('Недостаточно Pts!'); return; }
+
+    balance -= currentBet;
+    updateBal();
+
+    crashState = 'flying'; crashMult = 1.00;
+    btn.textContent = 'ЗАБРАТЬ!';
+    btn.style.background = 'linear-gradient(90deg, #ffd45c, #ff9d00)';
+    btn.style.color = '#000';
+    statEl.textContent = 'Ракета летит...';
+    rocket.textContent = '🚀';
+
+    const crashPoint = (Math.random() < 0.25) ? 1.00 : +(1.05 + Math.random() * 3.8).toFixed(2);
+    let posX = 12, posY = 12;
+
+    crashTimer = setInterval(() => {
+      crashMult += 0.04;
+      multEl.textContent = crashMult.toFixed(2) + 'x';
+      posX = Math.min(posX + 2, 80); posY = Math.min(posY + 2.5, 70);
+      rocket.style.left = posX + '%'; rocket.style.bottom = posY + '%';
+
+      if (crashMult >= crashPoint) {
+        clearInterval(crashTimer);
+        crashState = 'idle';
+        btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
+        btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
+        btn.style.color = '#fff';
+        rocket.textContent = '💥';
+        statEl.textContent = 'КРАШ НА ' + crashMult.toFixed(2) + 'x!';
+        multEl.style.color = '#ff3f4d';
+
+        setTimeout(() => {
+          rocket.style.left = '12%'; rocket.style.bottom = '12%';
+          rocket.textContent = '🚀';
+          multEl.style.color = 'var(--cyan)'; multEl.textContent = '1.00x';
+          statEl.textContent = 'Сделайте ставку и запустите ракету';
+        }, 2000);
+      }
+    }, 120);
+
+  } else if (crashState === 'flying') {
+    clearInterval(crashTimer);
+    const win = Math.floor(currentBet * crashMult);
+    balance += win;
+    updateBal();
+    crashState = 'idle';
+    btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
+    btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
+    btn.style.color = '#fff';
+    statEl.textContent = 'ВЫИГРЫШ +' + win + ' Pts!';
+  }
+}
+
+function submitTikTok() {
+  const url = document.getElementById('ttUrlInput')?.value;
+  if (!url) { alert('Вставьте ссылку!'); return; }
+  alert('Ролик отправлен на модерацию!');
+  if (document.getElementById('ttUrlInput')) document.getElementById('ttUrlInput').value = '';
+}
+
+function openAdminIfStaff() {
+  if (isStaffUser || userRole === 'owner') {
+    openScreen('admin');
+  } else {
+    alert("SQAD Game v3.0");
+  }
+}
+
+// Живое движение графика каждые 2.5 секунды
+setInterval(() => {
+  Object.keys(assetsData).forEach(key => {
+    const asset = assetsData[key];
+    const lastPrice = asset.history[asset.history.length - 1];
+    const noise = (Math.random() - 0.48) * (key === 'HAZARD' ? 3 : 0.6);
+    const newPrice = Math.max(1, +(lastPrice + noise).toFixed(2));
+    asset.history.push(newPrice);
+    if (asset.history.length > 15) asset.history.shift();
+    asset.price = newPrice;
+  });
+
+  if (document.getElementById('market').classList.contains('active')) {
+    selectAsset(currentAsset);
+  }
+}, 2500);
+
+function init() {
+  try { if (tg) { tg.ready(); tg.expand(); } } catch(e){}
+  if (tg?.initDataUnsafe?.user?.id === 1229294243) {
+    userRole = 'owner'; isStaffUser = true;
+    document.getElementById('roleBadge').textContent = 'OWNER';
+  }
+  updateBal();
+}
+
+init();
+</script>
+</body>
+</html>
