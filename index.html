@@ -1,631 +1,343 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SQAD Mini App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root {
-      --bg: #0d0f12;
-      --card-bg: #161920;
-      --accent: #ff0055;
-      --accent-glow: rgba(255, 0, 85, 0.4);
-      --text: #ffffff;
-      --muted: #8a8f9d;
-      --border: #262b36;
-      --gold: #ffd700;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#07030d">
+<title>SQAD Game | Rocket Crash</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg: #07030d;
+  --panel: #12071f;
+  --panel-border: #2a1245;
+  --pink: #ff3fc8;
+  --pink-glow: rgba(255,63,200,0.35);
+  --violet: #8d5cff;
+  --cyan: #48dcff;
+  --gold: #ffd45c;
+  --text: #ffffff;
+  --muted: #a393b8;
+}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding-bottom: 90px; }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
+#notTg { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 30px; text-align: center; align-content: center; }
+#app { display: none; min-height: 100vh; }
+.wrap { width: min(100%, 500px); margin: auto; padding: 12px 14px; }
 
-    header {
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border);
-    }
+/* HEADER */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; position: sticky; top: 0; z-index: 40; background: rgba(7,3,13,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--panel-border); }
+.brand { font-weight: 900; font-size: 20px; letter-spacing: 1px; color: var(--text); }
+.brand span { color: var(--pink); text-shadow: 0 0 10px var(--pink-glow); }
+.brand small { display: block; font-size: 8px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
 
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+.user-badge { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--panel-border); padding: 6px 12px; border-radius: 20px; }
+.avatar { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--violet)); display: grid; place-items: center; font-weight: 900; font-size: 11px; }
 
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: white;
-      box-shadow: 0 0 10px var(--accent-glow);
-    }
+/* SCREENS & CARDS */
+.screen { display: none; }
+.screen.active { display: block; }
 
-    .balance-box {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      font-weight: bold;
-      color: var(--gold);
-    }
+.hero-card { background: linear-gradient(160deg, #1f0a33, #0d0417); border: 1px solid #42186e; border-radius: 22px; padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+.balance-val { font-size: 32px; font-weight: 900; color: var(--gold); text-shadow: 0 0 12px rgba(255,212,92,0.3); margin: 4px 0; }
 
-    main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+.section-title { font-size: 14px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin: 18px 0 10px; }
 
-    .screen {
-      display: none;
-      flex-direction: column;
-      gap: 16px;
-    }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; padding: 14px; cursor: pointer; transition: transform 0.1s; position: relative; overflow: hidden; }
+.card:active { transform: scale(0.97); }
+.card-icon { font-size: 28px; margin-bottom: 6px; }
+.card-title { font-weight: 800; font-size: 14px; }
+.card-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-    .screen.active {
-      display: flex;
-    }
+/* GAMES COMMON */
+.game-box { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 22px; padding: 20px; text-align: center; margin-top: 10px; }
+.btn-primary { width: 100%; padding: 15px; border: 0; border-radius: 16px; background: linear-gradient(90deg, var(--pink), var(--violet)); color: #fff; font-weight: 900; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px var(--pink-glow); margin-top: 12px; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 16px;
-      border: 1px solid var(--border);
-    }
+/* ROCKET CRASH ANIMATION */
+.crash-arena { height: 180px; background: radial-gradient(circle at bottom left, #1a082d 0%, #05020a 100%); border-radius: 18px; border: 1px solid var(--panel-border); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.crash-mult { font-size: 44px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 15px rgba(72,220,255,0.5); z-index: 2; }
+.rocket { position: absolute; bottom: 15px; left: 15px; font-size: 36px; transition: all 0.15s ease-out; z-index: 2; transform: rotate(45deg); }
+.rocket-trail { position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-left: 2px dashed var(--pink); opacity: 0.6; }
 
-    .reels {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin: 20px 0;
-    }
+/* BET CONTROLS */
+.bet-controls { margin-top: 14px; text-align: left; }
+.bet-input-wrap { display: flex; gap: 8px; margin-top: 6px; }
+.bet-input { flex: 1; background: #07030d; border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px; color: var(--gold); font-weight: 900; font-size: 16px; outline: none; }
+.bet-btn { background: #1c0b30; border: 1px solid var(--panel-border); color: #fff; border-radius: 10px; padding: 8px 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
 
-    .reel {
-      width: 80px;
-      height: 80px;
-      background: #000;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      border: 2px solid var(--border);
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-    }
-
-    button.primary {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: none;
-      background: linear-gradient(135deg, #ff0055, #ff5500);
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 15px var(--accent-glow);
-      transition: transform 0.1s, opacity 0.2s;
-    }
-
-    button.primary:active {
-      transform: scale(0.98);
-    }
-
-    button.primary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    nav {
-      display: flex;
-      background: var(--card-bg);
-      border-top: 1px solid var(--border);
-      padding: 8px 0;
-    }
-
-    .nav-btn {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .nav-btn.active {
-      color: var(--accent);
-    }
-
-    .bets-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .royaleBet {
-      padding: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: white;
-      font-size: 12px;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .royaleBet.active {
-      border-color: var(--accent);
-      background: var(--accent-glow);
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #000;
-      color: white;
-      font-size: 14px;
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    .players-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .player-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    .royaleHidden {
-      display: none !important;
-    }
-  </style>
+/* FOOTER NAV */
+.nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 500px); background: rgba(7,3,13,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--panel-border); display: flex; justify-content: space-around; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); z-index: 50; }
+.nav-item { background: none; border: 0; color: var(--muted); font-size: 10px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+.nav-item.active { color: var(--pink); }
+.nav-item i { font-size: 18px; font-style: normal; }
+</style>
 </head>
 <body>
 
-  <header>
-    <div class="user-info">
-      <div class="avatar" id="uAvatar">S</div>
-      <div>
-        <div id="uName" style="font-weight: bold; font-size: 14px;">SQAD Player</div>
-        <div id="uLevel" style="font-size: 11px; color: var(--muted);">Lvl 1</div>
-      </div>
-    </div>
-    <div class="balance-box">
-      ⚡ <span id="uBalance">0</span>
-    </div>
-  </header>
+<div id="notTg">
+  <div style="font-size:48px;margin-bottom:15px">📱</div>
+  <h2 style="margin:0 0 10px">Откройте в Telegram</h2>
+  <p style="color:var(--muted);font-size:14px">Запустите приложение через официального бота SQAD в Telegram.</p>
+</div>
 
-  <main>
-    <!-- Screen: Classic Slots -->
-    <div id="screen-slots" class="screen active">
-      <div class="card" style="text-align: center;">
-        <h2 style="font-size: 18px; margin-bottom: 8px;">SQAD Slots</h2>
-        <p style="font-size: 12px; color: var(--muted);">Испытай удачу и заработай баллы</p>
-        <div class="reels">
-          <div class="reel" id="s1">🎰</div>
-          <div class="reel" id="s2">🎰</div>
-          <div class="reel" id="s3">🎰</div>
+<div id="app">
+  <div class="wrap">
+    <header class="header">
+      <div class="brand">SQAD <span>GAME</span><small>TOLYATTI ULTIMATE</small></div>
+      <div class="user-badge">
+        <div class="avatar" id="uAvatar">S</div>
+        <span id="uName" style="font-size:12px;font-weight:800">Player</span>
+      </div>
+    </header>
+
+    <!-- ГЛАВНАЯ -->
+    <section id="home" class="screen active">
+      <div class="hero-card">
+        <div style="font-size:10px;color:var(--pink);font-weight:900;letter-spacing:1.5px">SQAD BALANCE</div>
+        <div class="balance-val" id="balVal">0 <span>Pts</span></div>
+        <div style="font-size:11px;color:var(--muted)">Зарабатывай баллы в играх и участвуй в аукционе призов!</div>
+      </div>
+
+      <div class="section-title">🔥 ТОП ИГРЫ</div>
+      <div class="grid">
+        <div class="card" onclick="openScreen('crash')">
+          <div class="card-icon">🚀</div>
+          <div class="card-title">Rocket Crash</div>
+          <div class="card-sub">Взлет и Х-множитель</div>
         </div>
-        <button class="primary" id="spinBtn" onclick="classicSpin()">КРУТИТЬ (10 ⚡)</button>
+        <div class="card" onclick="openScreen('tap')">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Beat Tap</div>
+          <div class="card-sub">Фарм баллов</div>
+        </div>
+        <div class="card" onclick="openScreen('auction')">
+          <div class="card-icon">🏷️</div>
+          <div class="card-title">Аукцион</div>
+          <div class="card-sub">Призы за баллы</div>
+        </div>
+        <div class="card" onclick="openScreen('wheel')">
+          <div class="card-icon">🎡</div>
+          <div class="card-title">Neon Wheel</div>
+          <div class="card-sub">Колесо удачи</div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Screen: SQAD Royale (Multiplayer) -->
-    <div id="screen-royale" class="screen">
-      <!-- Lobby Mode -->
-      <div id="royaleLobby" class="card">
-        <h3 style="margin-bottom: 12px;">SQAD Royale</h3>
-        
-        <label style="font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px;">Выбери ставку:</label>
-        <div class="bets-grid">
-          <button class="royaleBet active" data-royale-bet="10" onclick="selectRoyaleBet(10, this)">10</button>
-          <button class="royaleBet" data-royale-bet="25" onclick="selectRoyaleBet(25, this)">25</button>
-          <button class="royaleBet" data-royale-bet="50" onclick="selectRoyaleBet(50, this)">50</button>
-          <button class="royaleBet" data-royale-bet="100" onclick="selectRoyaleBet(100, this)">100</button>
-          <button class="royaleBet" data-royale-bet="250" onclick="selectRoyaleBet(250, this)">250</button>
+    <!-- ИГРА: ROCKET CRASH -->
+    <section id="crash" class="screen">
+      <div class="section-title">🚀 SQAD Rocket Crash</div>
+      <div class="game-box">
+        <div class="crash-arena" id="crashArena">
+          <div class="crash-mult" id="crashMult">1.00x</div>
+          <div id="crashStatus" style="font-size:11px;color:var(--muted);z-index:2;margin-top:4px">Укажите ставку и запустите ракету</div>
+          <div class="rocket" id="rocketIcon">🚀</div>
         </div>
 
-        <button class="primary" style="margin-bottom: 16px;" onclick="royaleCreate()">СОЗДАТЬ КОМНАТУ</button>
-
-        <hr style="border-color: var(--border); margin: 16px 0;" />
-
-        <input type="text" id="royaleJoinCode" placeholder="Код комнаты (6 символов)" maxlength="6" style="text-transform: uppercase;" />
-        <button class="primary" style="background: linear-gradient(135deg, #333, #555);" onclick="royaleJoin()">ВОЙТИ В КОМНАТУ</button>
-      </div>
-
-      <!-- Room Mode -->
-      <div id="royaleRoom" class="card royaleHidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div>
-            <span style="font-size: 12px; color: var(--muted);">Код:</span>
-            <strong id="royaleRoomCode" style="font-size: 18px; color: var(--accent); cursor: pointer;" onclick="copyRoyaleCode()">------</strong>
+        <div class="bet-controls">
+          <div style="font-size:11px;color:var(--muted);font-weight:700">РАЗМЕР СТАВКИ (Pts):</div>
+          <div class="bet-input-wrap">
+            <input type="number" id="crashBetInput" class="bet-input" value="10" min="1">
+            <button class="bet-btn" onclick="setBet(10)">10</button>
+            <button class="bet-btn" onclick="setBet(50)">50</button>
+            <button class="bet-btn" onclick="setBet(100)">100</button>
+            <button class="bet-btn" onclick="setMaxBet()">MAX</button>
           </div>
-          <div>
-            <span style="font-size: 12px; color: var(--muted);">Банк:</span>
-            <strong id="royalePot" style="color: var(--gold);">0</strong> ⚡
-          </div>
         </div>
 
-        <div style="font-size: 12px; margin-bottom: 12px; color: var(--muted);">
-          Статус: <span id="royaleRoomStatus" style="color: #fff;">Ожидание</span> | Раунд: <span id="royaleRoundNow">0</span>/5
-        </div>
-
-        <div id="royalePlayArea" class="royaleHidden" style="text-align: center; margin: 16px 0;">
-          <div style="font-weight: bold; margin-bottom: 8px;">Твой ход</div>
-          <div class="reels">
-            <div class="reel" id="rr1">🔥</div>
-            <div class="reel" id="rr2">🎟️</div>
-            <div class="reel" id="rr3">🎧</div>
-          </div>
-          <div style="font-size: 11px; color: var(--muted); margin-bottom: 12px;" id="royaleSpinWait">Ждем участников...</div>
-          <button class="primary" id="royaleSpinBtn" onclick="royaleSpin()">СДЕЛАТЬ ХОД</button>
-        </div>
-
-        <div id="royaleLobbyActions" style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <button class="primary" id="royaleReadyBtn" style="flex: 1;" onclick="royaleToggleReady()">ГОТОВ</button>
-          <button class="primary" id="royaleStartBtn" style="flex: 1; background: #00e676;" onclick="royaleStart()">СТАРТ</button>
-        </div>
-
-        <div style="font-weight: bold; font-size: 14px; margin-top: 12px;">Участники:</div>
-        <div class="players-list" id="royalePlayers"></div>
-
-        <div id="royaleFinal" class="royaleHidden" style="margin-top: 16px; padding: 12px; background: rgba(255,215,0,0.1); border: 1px solid var(--gold); border-radius: 8px; text-align: center;"></div>
-
-        <button class="primary" id="royaleLeaveBtn" style="margin-top: 16px; background: transparent; border: 1px solid var(--border);" onclick="royaleLeave()">← Выйти</button>
+        <button class="btn-primary" id="crashBtn" onclick="handleCrash()">ПОЕХАЛИ! (СТАВКА)</button>
       </div>
+    </section>
 
-      <div class="card">
-        <div style="font-weight: bold; margin-bottom: 8px;">Таблица баттла</div>
-        <div id="royaleScoreTable" style="font-size: 12px;"></div>
+    <!-- ИГРА: TAP -->
+    <section id="tap" class="screen">
+      <div class="section-title">⚡ Beat Tap</div>
+      <div class="game-box">
+        <div style="font-size:12px;color:var(--muted)">Натапано очков</div>
+        <div style="font-size:40px;font-weight:900;color:var(--pink);margin:10px 0" id="tapCount">0</div>
+        <button class="btn-primary" onclick="doTap()">ТАПАТЬ ВАЙБ 🔥</button>
       </div>
-    </div>
+    </section>
 
-    <!-- Screen: Leaderboard -->
-    <div id="screen-top" class="screen">
-      <div class="card">
-        <h3 style="margin-bottom: 12px;">Топ Игроков</h3>
-        <div class="players-list" id="leaderboardList"></div>
+    <!-- АУКЦИОН -->
+    <section id="auction" class="screen">
+      <div class="section-title">🏷️ Аукцион SQAD</div>
+      <div class="game-box" style="text-align:left">
+        <div style="font-size:16px;font-weight:900">Telegram Premium (3 месяца)</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Эксклюзивный цифровой лот</div>
+        <div style="background:#000;padding:12px;border-radius:12px;margin:12px 0;border:1px solid var(--panel-border)">
+          <div style="font-size:11px;color:var(--muted)">Текущая ставка: <b style="color:var(--gold)" id="aucBid">500 Pts</b></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Лидер: <b style="color:#fff" id="aucUser">@alex_sqad</b></div>
+        </div>
+        <button class="btn-primary" onclick="bidAuction(50)">ПОБИТЬ СТАВКУ (+50 Pts)</button>
       </div>
-    </div>
-  </main>
+    </section>
 
-  <nav>
-    <button class="nav-btn active" onclick="openScreen('slots', this)">
-      <span>🎰</span>
-      <span>Слоты</span>
-    </button>
-    <button class="nav-btn" onclick="openScreen('royale', this)">
-      <span>👑</span>
-      <span>Royale</span>
-    </button>
-    <button class="nav-btn" onclick="openScreen('top', this)">
-      <span>🏆</span>
-      <span>Топ</span>
-    </button>
+    <!-- ИГРА: NEON WHEEL -->
+    <section id="wheel" class="screen">
+      <div class="section-title">🎡 Neon Wheel</div>
+      <div class="game-box">
+        <div style="font-size:60px;margin:10px 0">🎡</div>
+        <div id="wheelRes" style="font-size:13px;font-weight:800;color:var(--gold);min-height:20px"></div>
+        <button class="btn-primary" onclick="spinWheel()">КРУТИТЬ (15 Pts)</button>
+      </div>
+    </section>
+
+  </div>
+
+  <nav class="nav-bar">
+    <button class="nav-item active" onclick="openScreen('home')"><i>🏠</i>Главная</button>
+    <button class="nav-item" onclick="openScreen('crash')"><i>🚀</i>Краш</button>
+    <button class="nav-item" onclick="openScreen('auction')"><i>🏷️</i>Аукцион</button>
+    <button class="nav-item" onclick="openScreen('tap')"><i>⚡</i>Тапалка</button>
   </nav>
+</div>
 
-  <script>
-    const SQAD_BUILD = {
-      gameUrl: 'https://kkmanstpvlluaykwlmml.supabase.co/functions/v1/game',
-      royaleUrl: 'https://kkmanstpvlluaykwlmml.supabase.co/functions/v1/royale'
-    };
+<script>
+let tg = window.Telegram?.WebApp || null;
+let balance = 100;
 
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-    }
+function openScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+}
 
-    let currentScreen = 'slots';
-    window.sqadScore = 0;
+function updateBal() {
+  document.getElementById('balVal').innerHTML = balance + ' <span>Pts</span>';
+}
 
-    function haptic(type = 'light') {
-      try { tg?.HapticFeedback?.impactOccurred(type); } catch(e) {}
-    }
+function setBet(val) { document.getElementById('crashBetInput').value = val; }
+function setMaxBet() { document.getElementById('crashBetInput').value = balance; }
 
-    function openScreen(id, btn) {
-      currentScreen = id;
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      
-      document.getElementById(`screen-${id}`)?.classList.add('active');
-      if (btn) btn.classList.add('active');
+/* ROCKET CRASH ENGINE */
+let crashState = 'idle'; // idle | flying
+let crashMult = 1.00;
+let crashTimer = null;
+let currentBet = 0;
 
-      if (id === 'top') loadLeaderboard();
-      if (id === 'royale') {
-        if (royaleRoomCode) {
-          royaleUiMode(true);
-          royaleRefresh();
-          royaleStartPolling();
-        } else {
-          royaleUiMode(false);
-        }
-      } else {
-        royaleStopPolling();
-      }
-    }
+function handleCrash() {
+  const btn = document.getElementById('crashBtn');
+  const multEl = document.getElementById('crashMult');
+  const statEl = document.getElementById('crashStatus');
+  const rocket = document.getElementById('rocketIcon');
+  const betInput = document.getElementById('crashBetInput');
 
-    function updateUI() {
-      document.getElementById('uBalance').textContent = window.sqadScore || 0;
-    }
+  if (crashState === 'idle') {
+    currentBet = parseInt(betInput.value) || 0;
+    if (currentBet <= 0) { alert('Введите корректную ставку!'); return; }
+    if (balance < currentBet) { alert('Недостаточно баллов на балансе!'); return; }
 
-    async function apiRequest(url, action, data = {}) {
-      const initData = tg?.initData || '';
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, initData, ...data })
-      });
-      const result = await response.json();
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || 'Ошибка сервера');
-      }
-      return result;
-    }
+    balance -= currentBet;
+    updateBal();
 
-    // --- CLASSIC SLOTS ---
-    async function loadUserData() {
-      try {
-        const res = await apiRequest(SQAD_BUILD.gameUrl, 'get_balance');
-        window.sqadScore = res.balance?.points || 0;
-        document.getElementById('uLevel').textContent = `Lvl ${res.balance?.level || 1}`;
-        if (tg?.initDataUnsafe?.user) {
-          const u = tg.initDataUnsafe.user;
-          document.getElementById('uName').textContent = u.first_name || 'SQAD Player';
-          document.getElementById('uAvatar').textContent = (u.first_name || 'S').charAt(0).toUpperCase();
-        }
-        updateUI();
-      } catch (e) {
-        console.error(e);
-      }
-    }
+    crashState = 'flying';
+    crashMult = 1.00;
+    btn.textContent = 'ЗАБРАТЬ!';
+    btn.style.background = 'linear-gradient(90deg, #ffd45c, #ff9d00)';
+    btn.style.color = '#000';
+    statEl.textContent = 'Ракета в полете...';
+    rocket.textContent = '🚀';
 
-    async function classicSpin() {
-      const btn = document.getElementById('spinBtn');
-      btn.disabled = true;
-      haptic('medium');
+    // Точка падения (RTP 80%)
+    const crashPoint = (Math.random() < 0.25) ? 1.00 : +(1.05 + Math.random() * 3.8).toFixed(2);
 
-      try {
-        const res = await apiRequest(SQAD_BUILD.gameUrl, 'classic_spin');
-        const [s1, s2, s3] = res.game.symbols;
+    let posX = 15, posY = 15;
+
+    crashTimer = setInterval(() => {
+      crashMult += 0.04;
+      multEl.textContent = crashMult.toFixed(2) + 'x';
+
+      // Движение ракеты вверх и вправо
+      posX = Math.min( posX + 2, 80 );
+      posY = Math.min( posY + 2.5, 70 );
+      rocket.style.left = posX + '%';
+      rocket.style.bottom = posY + '%';
+
+      if (crashMult >= crashPoint) {
+        // ВЗРЫВ / ВЗЛЕТ В КОСМОС
+        clearInterval(crashTimer);
+        crashState = 'idle';
+        btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
+        btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
+        btn.style.color = '#fff';
         
-        document.getElementById('s1').textContent = s1;
-        document.getElementById('s2').textContent = s2;
-        document.getElementById('s3').textContent = s3;
+        rocket.textContent = '💥';
+        statEl.textContent = 'РАКЕТА ВЗОРВАЛАСЬ НА ' + crashMult.toFixed(2) + 'x!';
+        multEl.style.color = '#ff3f4d';
 
-        window.sqadScore = res.game.balance;
-        updateUI();
-
-        if (res.game.points > 0) {
-          haptic('success');
-          alert(`Выиграно +${res.game.points} баллов!`);
-        }
-      } catch (e) {
-        alert(e.message);
-      } finally {
-        btn.disabled = false;
+        setTimeout(() => {
+          rocket.style.left = '15%';
+          rocket.style.bottom = '15%';
+          rocket.textContent = '🚀';
+          multEl.style.color = 'var(--cyan)';
+          multEl.textContent = '1.00x';
+          statEl.textContent = 'Укажите ставку и запустите ракету';
+        }, 2200);
       }
-    }
+    }, 120);
 
-    async function loadLeaderboard() {
-      const listEl = document.getElementById('leaderboardList');
-      listEl.innerHTML = 'Загрузка...';
-      try {
-        const res = await apiRequest(SQAD_BUILD.gameUrl, 'get_leaderboard');
-        listEl.innerHTML = res.players.map((p, i) => `
-          <div class="player-row">
-            <span>#${i + 1} ${p.display_name}</span>
-            <strong style="color: var(--gold);">${p.points} ⚡</strong>
-          </div>
-        `).join('');
-      } catch (e) {
-        listEl.innerHTML = 'Ошибка загрузки';
-      }
-    }
+  } else if (crashState === 'flying') {
+    // УСПЕЛ ЗАБРАТЬ
+    clearInterval(crashTimer);
+    const win = Math.floor(currentBet * crashMult);
+    balance += win;
+    updateBal();
 
-    // --- SQAD ROYALE MULTIPLAYER ---
-    let royaleBet = 10, royaleRoomCode = '', royaleState = null, royalePoll = null, royaleBusy = false;
+    crashState = 'idle';
+    btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
+    btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
+    btn.style.color = '#fff';
 
-    function selectRoyaleBet(amount, el) {
-      if (royaleBusy) return;
-      royaleBet = Number(amount);
-      document.querySelectorAll('.royaleBet').forEach(x => x.classList.toggle('active', Number(x.dataset.royaleBet) === royaleBet));
-      haptic('light');
-    }
+    statEl.textContent = 'УСПЕШНО! ВЫ ЗАБРАЛИ +' + win + ' Pts (' + crashMult.toFixed(2) + 'x)';
+    
+    setTimeout(() => {
+      rocket.style.left = '15%';
+      rocket.style.bottom = '15%';
+      multEl.textContent = '1.00x';
+    }, 1500);
+  }
+}
 
-    function royaleUiMode(inRoom) {
-      document.getElementById('royaleLobby')?.classList.toggle('royaleHidden', inRoom);
-      document.getElementById('royaleRoom')?.classList.toggle('royaleHidden', !inRoom);
-    }
+/* OTHER MINI GAMES */
+function doTap() {
+  balance += 1; updateBal();
+  document.getElementById('tapCount').textContent = parseInt(document.getElementById('tapCount').textContent) + 1;
+}
 
-    async function royaleCreate() {
-      if (royaleBusy) return;
-      royaleBusy = true;
-      try {
-        const res = await apiRequest(SQAD_BUILD.royaleUrl, 'royale_create', { bet: royaleBet });
-        royaleState = res;
-        royaleRoomCode = res.room?.code || '';
-        window.sqadScore = Math.max(0, (window.sqadScore || 0) - royaleBet);
-        updateUI();
-        royaleRender();
-        royaleStartPolling();
-      } catch (e) {
-        alert(e.message);
-      } finally {
-        royaleBusy = false;
-      }
-    }
+function bidAuction(step) {
+  if (balance < step) { alert('Недостаточно баллов!'); return; }
+  balance -= step; updateBal();
+  document.getElementById('aucBid').textContent = (parseInt(document.getElementById('aucBid').textContent) + step) + ' Pts';
+}
 
-    async function royaleJoin() {
-      if (royaleBusy) return;
-      const code = (document.getElementById('royaleJoinCode')?.value || '').trim().toUpperCase();
-      if (code.length !== 6) return alert('Введи 6-значный код');
-      royaleBusy = true;
-      try {
-        const res = await apiRequest(SQAD_BUILD.royaleUrl, 'royale_join', { room_code: code });
-        royaleState = res;
-        royaleRoomCode = code;
-        royaleRender();
-        royaleStartPolling();
-      } catch (e) {
-        alert(e.message);
-      } finally {
-        royaleBusy = false;
-      }
-    }
+function spinWheel() {
+  if (balance < 15) { alert('Недостаточно баллов!'); return; }
+  balance -= 15;
+  const rewards = [0, 5, 15, 30];
+  const win = rewards[Math.floor(Math.random() * rewards.length)];
+  balance += win; updateBal();
+  document.getElementById('wheelRes').textContent = win > 0 ? ('+ ' + win + ' Pts') : 'Мимо!';
+}
 
-    async function royaleToggleReady() {
-      if (royaleBusy || !royaleRoomCode) return;
-      royaleBusy = true;
-      try {
-        const me = (royaleState?.players || []).find(p => p.is_me);
-        const res = await apiRequest(SQAD_BUILD.royaleUrl, 'royale_ready', { room_code: royaleRoomCode, ready: !me?.ready });
-        royaleState = res;
-        royaleRender();
-      } catch (e) {
-        alert(e.message);
-      } finally {
-        royaleBusy = false;
-      }
-    }
+function init() {
+  if (!tg || !tg.initData) {
+    document.getElementById('notTg').style.display = 'block';
+    return;
+  }
+  tg.ready(); tg.expand();
+  document.getElementById('app').style.display = 'block';
+  if (tg.initDataUnsafe?.user) {
+    document.getElementById('uName').textContent = tg.initDataUnsafe.user.first_name || 'Player';
+    document.getElementById('uAvatar').textContent = (tg.initDataUnsafe.user.first_name || 'S')[0].toUpperCase();
+  }
+  updateBal();
+}
 
-    async function royaleStart() {
-      if (royaleBusy || !royaleRoomCode) return;
-      royaleBusy = true;
-      try {
-        const res = await apiRequest(SQAD_BUILD.royaleUrl, 'royale_start', { room_code: royaleRoomCode });
-        royaleState = res;
-        royaleRender();
-      } catch (e) {
-        alert(e.message);
-      } finally {
-        royaleBusy = false;
-      }
-    }
-
-    async function royaleSpin() {
-      if (royaleBusy || !royaleRoomCode) return;
-      royaleBusy = true;
-      try {
-        const res = await apiRequest(SQAD_BUILD.royaleUrl, 'royale_spin', { room_code: royaleRoomCode });
-        royaleState = res;
-        royaleRender();
-      } catch (e) {
-        alert(e.message);
-      } finally {
-        royaleBusy = false;
-      }
-    }
-
-    async function royaleRefresh() {
-      if (!royaleRoomCode || royaleBusy) return;
-      try {
-        const res = await apiRequest(SQAD_BUILD.royaleUrl, 'royale_state', { room_code: royaleRoomCode });
-        royaleState = res;
-        royaleRender();
-      } catch (e) {
-        if (['ROOM_NOT_FOUND', 'NOT_IN_ROOM'].includes(e.message)) {
-          royaleStopPolling();
-          royaleRoomCode = '';
-          royaleUiMode(false);
-        }
-      }
-    }
-
-    function royaleStartPolling() {
-      royaleStopPolling();
-      royalePoll = setInterval(royaleRefresh, 2000);
-    }
-
-    function royaleStopPolling() {
-      if (royalePoll) clearInterval(royalePoll);
-      royalePoll = null;
-    }
-
-    async function royaleLeave() {
-      royaleStopPolling();
-      royaleRoomCode = '';
-      royaleState = null;
-      royaleUiMode(false);
-    }
-
-    function copyRoyaleCode() {
-      if (royaleRoomCode) {
-        navigator.clipboard?.writeText(royaleRoomCode);
-        alert('Код скопирован!');
-      }
-    }
-
-    function royaleRender() {
-      const r = royaleState?.room;
-      if (!r) return royaleUiMode(false);
-
-      royaleUiMode(true);
-      document.getElementById('royaleRoomCode').textContent = r.code;
-      document.getElementById('royaleRoomStatus').textContent = r.status;
-      document.getElementById('royaleRoundNow').textContent = r.current_round || 0;
-      document.getElementById('royalePot').textContent = r.pot || 0;
-
-      const ps = royaleState.players || [];
-      document.getElementById('royalePlayers').innerHTML = ps.map(p => `
-        <div class="player-row">
-          <span>${p.is_host ? '👑 ' : ''}${p.display_name} ${p.is_me ? '(Ты)' : ''}</span>
-          <span style="color: ${p.ready ? '#00e676' : 'var(--muted)'};">${p.ready ? 'ГОТОВ' : 'В ПОИСКЕ'}</span>
-        </div>
-      `).join('');
-
-      document.getElementById('royaleScoreTable').innerHTML = ps.map((p, i) => `
-        <div class="player-row">
-          <span>#${i + 1} ${p.display_name}</span>
-          <strong>${p.total_score || 0} б.</strong>
-        </div>
-      `).join('');
-    }
-
-    // Init
-    loadUserData();
-  </script>
+init();
+</script>
 </body>
 </html>
