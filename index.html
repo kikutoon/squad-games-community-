@@ -1,1 +1,72 @@
+function royaleApi(action,extra={}){
+if(!tg?.initData) return Promise.reject(new Error('Telegram initData is empty'));
+const controller=new AbortController();
+const timeout=setTimeout(()=>controller.abort(),10000);
+return fetch(SQAD_BUILD.royaleUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,action,...extra}),signal:controller.signal}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||('ROYALE_SERVER_'+r.status));return j;}).catch(e=>{if(e?.name==='AbortError')throw new Error('ROYALE_SERVER_TIMEOUT');throw e;}).finally(()=>clearTimeout(timeout));
+}
+let royaleBet=10,royaleRoomCode='',royaleState=null,royalePoll=null,royaleBusy=false,royaleLastSpinRound=0;
+function selectRoyaleBet(amount,el){if(royaleBusy)return;royaleBet=[10,25,50,100,250].includes(Number(amount))?Number(amount):10;document.querySelectorAll('.royaleBet').forEach(x=>x.classList.toggle('active',Number(x.dataset.royaleBet)=royaleBet));haptic('light');}
+function royaleUiMode(inRoom){document.getElementById('royaleLobby')?.classList.toggle('royaleHidden',inRoom);document.getElementById('royaleRoom')?.classList.toggle('royaleHidden',!inRoom);}
+function royaleStatusText(status){return ({waiting:'Сбор участников',playing:'Баттл идёт',finished:'Итоги подведены',cancelled:'Комната закрыта',starting:'Запуск!'})[status]||status||'—';}
+function royaleAvatar(p){return String(p?.avatar||p?.display_name||p?.username||'S').replace(/^@/,'').trim().charAt(0).toUpperCase()||'S';}
+function royaleEscape(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&','<':'<','>':'>',"'":''','"':'"'}[c]))}
+function royalePrizeFor(place,pot,count){pot=Number(pot)||0;if(place=1)return Math.floor(pot*.7);if(place=2&&count>=3)return Math.floor(pot*.2);if(place=2&&count=2)return pot-Math.floor(pot*.7);if(place=3&&count>=3)return pot-Math.floor(pot*.7)-Math.floor(pot*.2);return 0;}
+function royaleRenderPlayers(){
+const el=document.getElementById('royalePlayers');if(!el)return;const ps=Array.isArray(royaleState?.players)?royaleState.players:[];
+if(!ps.length){el.innerHTML='Ждем участников сквада…';return;}
+el.innerHTML=ps.map(p=>{const ready=!!p.ready;const host=p.is_host?' 👑':'';return ''+royaleEscape(royaleAvatar(p))+''+royaleEscape(p.display_name||p.username||'Участник')+(p.is_me?' ТЫ':'')+''+host+''+(ready?'ГОТОВ К ШОУ':'В ПОИСКЕ')+''+Number(p.total_score||0)+'БАЛЛОВ'+(p.place?'#'+p.place+'':'')+''}).join('');
+}
+function royaleRenderTable(){
+const el=document.getElementById('royaleScoreTable');if(!el)return;const ps=[...(royaleState?.players||[])].sort((a,b)=>{if(a.place&&b.place)return a.place-b.place;if(a.place)return -1;if(b.place)return 1;return Number(b.total_score||0)-Number(a.total_score||0)});
+if(!ps.length){el.innerHTML='Таблица баттла появится здесь.';return;}
+el.innerHTML='#УЧАСТНИКБАЛЛЫСТАТУС'+ps.map((p,i)=>''+(p.place||i+1)+''+royaleEscape(p.display_name||'Участник')+(p.is_me?' · ТЫ':'')+''+Number(p.total_score||0)+''+(p.place?'✓':'…')+'').join('');
+}
+function royaleRenderFinal(){
+const box=document.getElementById('royaleFinal');if(!box)return;const r=royaleState?.room;if(!r||r.status!'finished'){box.classList.add('royaleHidden');box.innerHTML='';return;}const me=(royaleState.players||[]).find(p=>p.is_me);const count=(royaleState.players||[]).length;const place=Number(me?.place)||0;const prize=royalePrizeFor(place,Number(r.pot)||0,count);const title=place=1?'ТЫ — ТОП-1 SQAD!':place?'БАТТЛ ЗАВЕРШЕН':'ИТОГИ БАТТЛА';box.classList.remove('royaleHidden');box.innerHTML=''+(place=1?'🔥':'🏆')+''+title+'Твое место в скваде#'+(place||'—')+''+(prize?'Выигрыш: +'+prize+' баллов':'Без призовой выплаты')+' · Банк '+(Number(r.pot)||0)+'В ЛОББИ SQAD';
+}
+function royaleRender(){
+const r=royaleState?.room;if(!r){royaleUiMode(false);return;}
+royaleUiMode(true);
+const codeEl=document.getElementById('royaleRoomCode');if(codeEl)codeEl.textContent=r.code;
+const statEl=document.getElementById('royaleRoomStatus');if(statEl)statEl.textContent=royaleStatusText(r.status);
+const rndEl=document.getElementById('royaleRoundNow');if(rndEl)rndEl.textContent=Number(r.current_round)||0;
+const potEl=document.getElementById('royalePot');if(potEl)potEl.textContent=Number(r.pot)||0;
+royaleRenderPlayers();royaleRenderTable();royaleRenderFinal();
+const ps=royaleState.players||[],me=ps.find(p=>p.is_me),host=!!me?.is_host,playing=r.status='playing',waiting=r.status==='waiting',finished=r.status==='finished',already=royaleLastSpinRound=Number(r.current_round);
+const lobbyActions=document.getElementById('royaleLobbyActions');if(lobbyActions)lobbyActions.classList.toggle('royaleHidden',!waiting);
+const readyBtn=document.getElementById('royaleReadyBtn');if(readyBtn){readyBtn.textContent=me?.ready?'✕ НЕ ГОТОВ':'✓ ГОТОВ';readyBtn.disabled=royaleBusy||!waiting;}
+const startBtn=document.getElementById('royaleStartBtn');if(startBtn){startBtn.disabled=royaleBusy||!waiting||!host||ps.length<2||!ps.every(p=>p.ready);startBtn.textContent=host?'🔥 СТАРТ БАТТЛА':'🔒 ЖДЕМ ХОСТА';}
+const play=document.getElementById('royalePlayArea');if(play)play.classList.toggle('royaleHidden',!playing);
+const spinBtn=document.getElementById('royaleSpinBtn');if(spinBtn){spinBtn.disabled=royaleBusy||already;spinBtn.textContent=already?'✓ ХОД СДЕЛАН':'🎰 КРУТИТЬ SQAD';}
+const wait=document.getElementById('royaleSpinWait');if(wait){const done=(royaleState.current_results||[]).length;wait.textContent=(already?'Твой ход принят. Ждем остальных…':'Сделали ходы: '+done+' / '+ps.length);}
+const leave=document.getElementById('royaleLeaveBtn');if(leave)leave.textContent=finished?'← ЗАКРЫТЬ ИТОГИ':'← ВЫЙТИ ИЗ КОМНАТЫ';
+}
+async function royaleRefresh(){
+if(!royaleRoomCode)return;try{const r=await royaleApi('royale_state',{room_code:royaleRoomCode});royaleState=r;royaleRender();}catch(e){if(['ROOM_NOT_FOUND','NOT_IN_ROOM'].includes(e.message)){royaleStopPolling();royaleRoomCode='';royaleState=null;royaleUiMode(false);if(currentScreen='royale')alert('Комната закрыта');}}
+}
+function royaleStartPolling(){clearInterval(royalePoll);royalePoll=setInterval(()=>{if(currentScreen==='royale'&&royaleRoomCode&&!royaleBusy)royaleRefresh()},1500)}
+function royaleStopPolling(){clearInterval(royalePoll);royalePoll=null}
+async function royaleCreate(){if(royaleBusy)return;royaleBusy=true;try{const r=await royaleApi('royale_create',{bet:royaleBet});royaleState=r;royaleRoomCode=r.room?.code||'';royaleLastSpinRound=0;window.sqadScore=Math.max(0,(window.sqadScore||0)-royaleBet);updateUI();royaleRender();royaleStartPolling();alert('Создана комната SQAD: '+royaleRoomCode);}catch(e){alert('Ошибка: '+e.message);}finally{royaleBusy=false;}}
+async function royaleJoin(){if(royaleBusy)return;const code=(document.getElementById('royaleJoinCode')?.value||'').trim().toUpperCase();if(code.length!6){alert('Введи 6-значный код комнаты');return;}royaleBusy=true;try{const r=await royaleApi('royale_join',{room_code:code});royaleState=r;royaleRoomCode=r.room?.code||code;royaleLastSpinRound=0;royaleRender();royaleStartPolling();alert('Ты в скваде комнаты '+royaleRoomCode);}catch(e){alert('Ошибка: '+e.message);}finally{royaleBusy=false;}}
+async function royaleToggleReady(){if(royaleBusy||!royaleRoomCode)return;const me=(royaleState?.players||[]).find(p=>p.is_me);royaleBusy=true;try{const r=await royaleApi('royale_ready',{room_code:royaleRoomCode,ready:!me?.ready});royaleState=r;royaleRender();}catch(e){alert(e.message);}finally{royaleBusy=false;royaleRender();}}
+async function royaleStart(){if(royaleBusy||!royaleRoomCode)return;royaleBusy=true;try{const r=await royaleApi('royale_start',{room_code:royaleRoomCode});royaleState=r;royaleLastSpinRound=0;royaleRender();alert('Баттл начался!');}catch(e){alert(e.message);}finally{royaleBusy=false;royaleRender();}}
+async function royaleSpin(){if(royaleBusy||!royaleRoomCode||royaleState?.room?.status!'playing')return;const round=Number(royaleState.room.current_round)||0;if(royaleLastSpinRound=round)return;royaleBusy=true;try{const r=await royaleApi('royale_spin',{room_code:royaleRoomCode});royaleLastSpinRound=round;royaleState=r;royaleRender();alert('Ход выполнен!');}catch(e){alert(e.message);}finally{royaleBusy=false;royaleRender();}}
+async function royaleLeave(){if(!royaleRoomCode)return;if(royaleState?.room?.status='finished'){royaleExitFinished();return;}royaleBusy=true;try{await royaleApi('royale_leave',{room_code:royaleRoomCode});royaleStopPolling();royaleRoomCode='';royaleState=null;royaleUiMode(false);openScreen('royale');}catch(e){alert(e.message);}finally{royaleBusy=false;}}
+function royaleExitFinished(){royaleStopPolling();royaleRoomCode='';royaleState=null;royaleLastSpinRound=0;royaleUiMode(false);document.getElementById('royaleFinal')?.classList.add('royaleHidden');updateUI();}
+function copyRoyaleCode(){const code=royaleState?.room?.code||royaleRoomCode;if(!code)return;navigator.clipboard?.writeText(code).then(()=>alert('Код скопирован: '+code));}
+function royalePatchOpenScreen(){const original=openScreen;openScreen=function(id){if(currentScreen==='royale'&&id!'royale')royaleStopPolling();original(id);if(id='royale'){if(royaleRoomCode){royaleUiMode(true);royaleRefresh();royaleStartPolling()}else royaleUiMode(false);}};}
+
+
+<div id="royalePlayArea" class="royaleHero royaleHidden" style="text-align:center">
+  <div style="font-weight:950">Твой ход в раунде</div>
+  <div class="reels">
+    <div class="reel" id="rr1">🔥</div>
+    <div class="reel" id="rr2">🎟️</div>
+    <div class="reel" id="rr3">🎧</div>
+  </div>
+  <div style="font-size:11px;color:var(--muted)" id="royaleSpinWait">Ждем остальных...</div>
+  <button class="primary" id="royaleSpinBtn" onclick="royaleSpin()">КРУТИТЬ БАРАБАН</button>
+</div>
+<div id="royaleFinal" class="royaleHidden" style="margin-top:10px"></div>
+<div class="royaleHero"><div style="font-weight:950;margin-bottom:6px">Таблица баттла</div><div id="royaleScoreTable"></div></div>
 
