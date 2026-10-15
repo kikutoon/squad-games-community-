@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07030d">
-<title>SQAD Game | Tolyatti Ultimate</title>
+<title>SQAD Game | Premium Arcade</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root {
   --bg: #07030d;
-  --panel: #12071f;
-  --panel-border: #2a1245;
+  --panel: #11071e;
+  --panel-border: rgba(255, 63, 200, 0.18);
   --pink: #ff3fc8;
-  --pink-glow: rgba(255,63,200,0.35);
+  --pink-glow: rgba(255, 63, 200, 0.4);
   --violet: #8d5cff;
   --cyan: #48dcff;
   --gold: #ffd45c;
@@ -21,63 +21,69 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding-bottom: 80px; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; overflow-x: hidden; }
 
 #notTg { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; padding: 30px; text-align: center; align-content: center; }
 #app { display: none; min-height: 100vh; }
-.wrap { width: min(100%, 500px); margin: auto; padding: 12px 14px; }
+
+/* LAYOUT WITH SIDEBAR */
+.app-container { display: flex; min-height: 100vh; padding-bottom: 70px; }
+
+/* FIX SIDEBAR (БОКОВАЯ ПАНЕЛЬ ИГР) */
+.sidebar { width: 68px; background: rgba(13, 5, 25, 0.95); backdrop-filter: blur(15px); border-right: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 12px; position: fixed; top: 0; bottom: 70px; left: 0; z-index: 40; }
+.sidebar-item { width: 46px; height: 46px; border-radius: 14px; background: var(--panel); border: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; }
+.sidebar-item:active { transform: scale(0.92); }
+.sidebar-item.active { background: linear-gradient(135deg, var(--pink), var(--violet)); border-color: #fff; box-shadow: 0 0 12px var(--pink-glow); }
+.sidebar-label { font-size: 8px; font-weight: 800; color: var(--muted); margin-top: 2px; }
+.sidebar-item.active .sidebar-label { color: #fff; }
+
+/* MAIN CONTENT AREA */
+.main-content { flex: 1; margin-left: 68px; padding: 12px; max-width: calc(100vw - 68px); }
 
 /* HEADER */
-.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; position: sticky; top: 0; z-index: 40; background: rgba(7,3,13,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--panel-border); }
-.brand { font-weight: 900; font-size: 20px; letter-spacing: 1px; color: var(--text); }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; margin-bottom: 12px; border-bottom: 1px solid var(--panel-border); }
+.brand { font-weight: 900; font-size: 18px; letter-spacing: 1px; }
 .brand span { color: var(--pink); text-shadow: 0 0 10px var(--pink-glow); }
-.brand small { display: block; font-size: 8px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
+.brand small { display: block; font-size: 8px; color: var(--muted); letter-spacing: 2px; }
 
-.user-badge { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--panel-border); padding: 6px 12px; border-radius: 20px; cursor: pointer; }
-.avatar { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--violet)); display: grid; place-items: center; font-weight: 900; font-size: 11px; }
+.balance-chip { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #1d0933, #0c0417); border: 1px solid var(--pink); border-radius: 20px; padding: 4px 12px; box-shadow: 0 0 10px rgba(255,63,200,0.2); }
+.balance-num { font-weight: 900; font-size: 14px; color: var(--gold); }
+.add-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--pink); color: #fff; border: 0; display: grid; place-items: center; font-weight: 900; font-size: 12px; cursor: pointer; }
 
-/* SIDEBAR SCROLL CAROUSEL (Game Modes) */
-.games-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 12px; scrollbar-width: none; }
-.games-carousel::-webkit-scrollbar { display: none; }
-.game-pill { flex: 0 0 auto; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px; padding: 10px 16px; display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.15s; }
-.game-pill:active { transform: scale(0.95); border-color: var(--pink); }
-
-/* SCREENS */
-.screen { display: none; }
+/* CARDS & PANELS */
+.screen { display: none; animation: fadeIn 0.2s ease-in-out; }
 .screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-.hero-card { background: linear-gradient(160deg, #1f0a33, #0d0417); border: 1px solid #42186e; border-radius: 22px; padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
-.balance-val { font-size: 32px; font-weight: 900; color: var(--gold); text-shadow: 0 0 12px rgba(255,212,92,0.3); margin: 4px 0; }
-
-.section-title { font-size: 14px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin: 18px 0 10px; }
+.hero-card { background: linear-gradient(160deg, #1f0a33, #0d0417); border: 1px solid var(--panel-border); border-radius: 20px; padding: 16px; margin-bottom: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+.section-title { font-size: 12px; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin: 14px 0 8px; }
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; padding: 14px; cursor: pointer; transition: transform 0.1s; }
-.card:active { transform: scale(0.97); }
-.card-icon { font-size: 28px; margin-bottom: 6px; }
-.card-title { font-weight: 800; font-size: 14px; }
+.card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 18px; padding: 14px; cursor: pointer; transition: all 0.15s; }
+.card:active { transform: scale(0.96); border-color: var(--pink); }
+.card-icon { font-size: 28px; margin-bottom: 4px; }
+.card-title { font-weight: 900; font-size: 13px; }
 .card-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
 
-/* GAMES COMMON */
-.game-box { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 22px; padding: 20px; text-align: center; margin-top: 10px; }
-.btn-primary { width: 100%; padding: 15px; border: 0; border-radius: 16px; background: linear-gradient(90deg, var(--pink), var(--violet)); color: #fff; font-weight: 900; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px var(--pink-glow); margin-top: 12px; }
-.btn-primary:active { transform: scale(0.98); }
+/* GAME BOXES */
+.game-box { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 20px; padding: 16px; text-align: center; }
+.btn-primary { width: 100%; padding: 14px; border: 0; border-radius: 14px; background: linear-gradient(90deg, var(--pink), var(--violet)); color: #fff; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px var(--pink-glow); margin-top: 10px; }
+.btn-primary:active { transform: scale(0.97); }
 
 /* CRASH ARENA */
-.crash-arena { height: 180px; background: radial-gradient(circle at bottom left, #1a082d 0%, #05020a 100%); border-radius: 18px; border: 1px solid var(--panel-border); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.crash-mult { font-size: 44px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 15px rgba(72,220,255,0.5); z-index: 2; }
-.rocket { position: absolute; bottom: 15px; left: 15px; font-size: 36px; transition: all 0.15s ease-out; z-index: 2; transform: rotate(45deg); }
+.crash-arena { height: 160px; background: radial-gradient(circle at bottom left, #1a082d 0%, #05020a 100%); border-radius: 16px; border: 1px solid var(--panel-border); position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.crash-mult { font-size: 40px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 15px rgba(72,220,255,0.5); z-index: 2; }
+.rocket { position: absolute; bottom: 15px; left: 15px; font-size: 32px; transition: all 0.15s ease-out; z-index: 2; transform: rotate(45deg); }
 
-.bet-controls { margin-top: 14px; text-align: left; }
-.bet-input-wrap { display: flex; gap: 8px; margin-top: 6px; }
-.bet-input { flex: 1; background: #07030d; border: 1px solid var(--panel-border); border-radius: 12px; padding: 12px; color: var(--gold); font-weight: 900; font-size: 16px; outline: none; }
-.bet-btn { background: #1c0b30; border: 1px solid var(--panel-border); color: #fff; border-radius: 10px; padding: 8px 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
+.bet-input-wrap { display: flex; gap: 6px; margin-top: 6px; }
+.bet-input { flex: 1; background: #07030d; border: 1px solid var(--panel-border); border-radius: 10px; padding: 10px; color: var(--gold); font-weight: 900; font-size: 15px; outline: none; width: 60px; }
+.bet-btn { background: #1c0b30; border: 1px solid var(--panel-border); color: #fff; border-radius: 8px; padding: 6px 10px; font-weight: 800; font-size: 11px; cursor: pointer; }
 
-/* FOOTER NAV (ONLY 2 BUTTONS: MENU & PROFILE) */
-.nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 500px); background: rgba(7,3,13,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--panel-border); display: flex; justify-content: space-around; padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); z-index: 50; }
-.nav-item { background: none; border: 0; color: var(--muted); font-size: 11px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; flex: 1; }
+/* BOTTOM NAV BAR (2 BUTTONS ONLY) */
+.nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(7,3,13,0.96); backdrop-filter: blur(15px); border-top: 1px solid var(--panel-border); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 50; }
+.nav-item { background: none; border: 0; color: var(--muted); font-size: 10px; font-weight: 800; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; flex: 1; }
 .nav-item.active { color: var(--pink); }
-.nav-item i { font-size: 20px; font-style: normal; }
+.nav-item i { font-size: 18px; font-style: normal; }
 </style>
 </head>
 <body>
@@ -89,150 +95,163 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple
 </div>
 
 <div id="app">
-  <div class="wrap">
-    <header class="header">
-      <div class="brand">SQAD <span>GAME</span><small>TOLYATTI ULTIMATE</small></div>
-      <div class="user-badge" onclick="openScreen('profile')">
-        <div class="avatar" id="uAvatar">S</div>
-        <span id="uName" style="font-size:12px;font-weight:800">Player</span>
+  <div class="app-container">
+    
+    <!-- ФИКСИРОВАННОЕ БОКОВОЕ МЕНЮ (SIDEBAR) -->
+    <aside class="sidebar">
+      <div class="sidebar-item active" id="side-home" onclick="openScreen('home')">
+        🏠<span class="sidebar-label">Меню</span>
       </div>
-    </header>
-
-    <!-- ГЛАВНАЯ ЭКРАН -->
-    <section id="home" class="screen active">
-      <div class="hero-card">
-        <div style="font-size:10px;color:var(--pink);font-weight:900;letter-spacing:1.5px">БАЛЛЫ SQAD</div>
-        <div class="balance-val" id="balVal">0 <span>Pts</span></div>
-        <div style="font-size:11px;color:var(--muted)">Фарми баллы, играй в аркады и забирай призы!</div>
-        <button class="btn-primary" style="margin-top:14px;padding:10px;font-size:13px" onclick="openScreen('profile')">⚡ ПОПОЛНИТЬ БАЛЛАНС</button>
+      <div class="sidebar-item" id="side-crash" onclick="openScreen('crash')">
+        🚀<span class="sidebar-label">Crash</span>
       </div>
-
-      <!-- БОКОВОЙ СКРОЛЛ РЕЖИМОВ (Сайдбар-карусель) -->
-      <div class="section-title">🕹️ Режимы и Игры</div>
-      <div class="games-carousel">
-        <div class="game-pill" onclick="openScreen('crash')">🚀 Crash</div>
-        <div class="game-pill" onclick="openScreen('tap')">⚡ Beat Tap</div>
-        <div class="game-pill" onclick="openScreen('wheel')">🎡 Wheel</div>
-        <div class="game-pill" onclick="openScreen('auction')">🏷️ Аукцион</div>
+      <div class="sidebar-item" id="side-tap" onclick="openScreen('tap')">
+        ⚡<span class="sidebar-label">Tap</span>
       </div>
-
-      <div class="section-title">🔥 Все игры сквада</div>
-      <div class="grid">
-        <div class="card" onclick="openScreen('crash')">
-          <div class="card-icon">🚀</div>
-          <div class="card-title">Rocket Crash</div>
-          <div class="card-sub">Взлет и Х-множитель</div>
-        </div>
-        <div class="card" onclick="openScreen('tap')">
-          <div class="card-icon">⚡</div>
-          <div class="card-title">Beat Tap</div>
-          <div class="card-sub">Кликай и фарми</div>
-        </div>
-        <div class="card" onclick="openScreen('auction')">
-          <div class="card-icon">🏷️</div>
-          <div class="card-title">Аукцион</div>
-          <div class="card-sub">Призы за баллы</div>
-        </div>
-        <div class="card" onclick="openScreen('wheel')">
-          <div class="card-icon">🎡</div>
-          <div class="card-title">Neon Wheel</div>
-          <div class="card-sub">Колесо удачи</div>
-        </div>
+      <div class="sidebar-item" id="side-wheel" onclick="openScreen('wheel')">
+        🎡<span class="sidebar-label">Wheel</span>
       </div>
-    </section>
-
-    <!-- ПРОФИЛЬ И РЕФЕРАЛЬНАЯ СИСТЕМА -->
-    <section id="profile" class="screen">
-      <div class="section-title">👤 Профиль участника</div>
-      <div class="game-box" style="text-align:left">
-        <div style="font-weight:900;font-size:16px" id="profName">Участник SQAD</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="profId">ID: ...</div>
-
-        <div style="background:#07030d;border:1px solid var(--panel-border);border-radius:14px;padding:12px;margin:14px 0">
-          <div style="font-size:11px;color:var(--muted);font-weight:800">ТВОЙ БАЛАНС</div>
-          <div style="font-size:24px;font-weight:900;color:var(--gold)" id="profBalance">0 Pts</div>
-        </div>
-
-        <div style="font-weight:900;font-size:13px;margin-bottom:6px">💳 Пополнение баланса</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
-          <button class="bet-btn" onclick="doRecharge(100)">+100 Pts</button>
-          <button class="bet-btn" onclick="doRecharge(500)">+500 Pts</button>
-          <button class="bet-btn" onclick="doRecharge(1000)">+1000 Pts</button>
-        </div>
-
-        <div style="font-weight:900;font-size:13px;margin-bottom:6px">👥 Реферальная система</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Приглашай друзей и получай +150 Pts за каждого!</div>
-        <div style="background:#07030d;border:1px solid var(--panel-border);border-radius:12px;padding:10px;font-size:11px;word-break:break-all;color:var(--cyan);margin-bottom:8px" id="refLink">
-          Загрузка ссылки...
-        </div>
-        <button class="btn-primary" style="margin-top:0;padding:12px" onclick="shareRefLink()">ПОДЕЛИТЬСЯ ССЫЛКОЙ</button>
+      <div class="sidebar-item" id="side-auction" onclick="openScreen('auction')">
+        🏷️<span class="sidebar-label">Аукцион</span>
       </div>
-    </section>
+    </aside>
 
-    <!-- ИГРА: ROCKET CRASH -->
-    <section id="crash" class="screen">
-      <div class="section-title">🚀 SQAD Rocket Crash</div>
-      <div class="game-box">
-        <div class="crash-arena" id="crashArena">
-          <div class="crash-mult" id="crashMult">1.00x</div>
-          <div id="crashStatus" style="font-size:11px;color:var(--muted);z-index:2;margin-top:4px">Укажите ставку и запустите ракету</div>
-          <div class="rocket" id="rocketIcon">🚀</div>
+    <!-- ОСНОВНАЯ ОБЛАСТЬ -->
+    <main class="main-content">
+      <header class="header">
+        <div class="brand">SQAD <span>GAME</span><small>TOLYATTI</small></div>
+        <div class="balance-chip" onclick="openScreen('profile')">
+          <span class="balance-num" id="balVal">0 Pts</span>
+          <button class="add-btn">+</button>
+        </div>
+      </header>
+
+      <!-- ГЛАВНАЯ -->
+      <section id="home" class="screen active">
+        <div class="hero-card">
+          <div style="font-size:10px;color:var(--pink);font-weight:900;letter-spacing:1px">АРКАДНЫЙ ИГРОВОЙ ЭКОСИСТЕМ</div>
+          <div style="font-size:20px;font-weight:900;margin:4px 0">Фарми баллы, забирай призы!</div>
+          <div style="font-size:11px;color:var(--muted)">Выбирай режим в боковой панели или из списка ниже.</div>
         </div>
 
-        <div class="bet-controls">
-          <div style="font-size:11px;color:var(--muted);font-weight:700">РАЗМЕР СТАВКИ (Pts):</div>
-          <div class="bet-input-wrap">
-            <input type="number" id="crashBetInput" class="bet-input" value="10" min="1">
-            <button class="bet-btn" onclick="setBet(10)">10</button>
-            <button class="bet-btn" onclick="setBet(50)">50</button>
-            <button class="bet-btn" onclick="setBet(100)">100</button>
-            <button class="bet-btn" onclick="setMaxBet()">MAX</button>
+        <div class="section-title">🔥 Игровые Режимы</div>
+        <div class="grid">
+          <div class="card" onclick="openScreen('crash')">
+            <div class="card-icon">🚀</div>
+            <div class="card-title">Rocket Crash</div>
+            <div class="card-sub">Х-множитель полета</div>
+          </div>
+          <div class="card" onclick="openScreen('tap')">
+            <div class="card-icon">⚡</div>
+            <div class="card-title">Beat Tap</div>
+            <div class="card-sub">Скоростной фарм</div>
+          </div>
+          <div class="card" onclick="openScreen('auction')">
+            <div class="card-icon">🏷️</div>
+            <div class="card-title">Аукцион</div>
+            <div class="card-sub">Призы за баллы</div>
+          </div>
+          <div class="card" onclick="openScreen('wheel')">
+            <div class="card-icon">🎡</div>
+            <div class="card-title">Neon Wheel</div>
+            <div class="card-sub">Колесо Фортуны</div>
           </div>
         </div>
+      </section>
 
-        <button class="btn-primary" id="crashBtn" onclick="handleCrash()">ПОЕХАЛИ! (СТАВКА)</button>
-      </div>
-    </section>
+      <!-- ПРОФИЛЬ & ПОПОЛНЕНИЕ & РЕФЕРАЛЫ -->
+      <section id="profile" class="screen">
+        <div class="section-title">👤 Профиль участника</div>
+        <div class="game-box" style="text-align:left">
+          <div style="font-weight:900;font-size:16px" id="profName">Участник SQAD</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px" id="profId">ID: ---</div>
 
-    <!-- ИГРА: TAP -->
-    <section id="tap" class="screen">
-      <div class="section-title">⚡ Beat Tap</div>
-      <div class="game-box">
-        <div style="font-size:12px;color:var(--muted)">Натапано очков</div>
-        <div style="font-size:40px;font-weight:900;color:var(--pink);margin:10px 0" id="tapCount">0</div>
-        <button class="btn-primary" onclick="doTap()">ТАПАТЬ ВАЙБ 🔥</button>
-      </div>
-    </section>
+          <div style="background:#07030d;border:1px solid var(--panel-border);border-radius:14px;padding:12px;margin:12px 0">
+            <div style="font-size:10px;color:var(--muted);font-weight:800">ТВОЙ БАЛАНС</div>
+            <div style="font-size:22px;font-weight:900;color:var(--gold)" id="profBalance">0 Pts</div>
+          </div>
 
-    <!-- АУКЦИОН -->
-    <section id="auction" class="screen">
-      <div class="section-title">🏷️ Аукцион SQAD</div>
-      <div class="game-box" style="text-align:left">
-        <div style="font-size:16px;font-weight:900">Telegram Premium (3 месяца)</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">Эксклюзивный цифровой лот</div>
-        <div style="background:#000;padding:12px;border-radius:12px;margin:12px 0;border:1px solid var(--panel-border)">
-          <div style="font-size:11px;color:var(--muted)">Текущая ставка: <b style="color:var(--gold)" id="aucBid">500 Pts</b></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">Лидер: <b style="color:#fff" id="aucUser">@alex_sqad</b></div>
+          <div style="font-weight:900;font-size:12px;margin-bottom:6px">💳 Пополнение баланса</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
+            <button class="bet-btn" onclick="doRecharge(100)">+100 Pts</button>
+            <button class="bet-btn" onclick="doRecharge(500)">+500 Pts</button>
+            <button class="bet-btn" onclick="doRecharge(1000)">+1000 Pts</button>
+          </div>
+
+          <div style="font-weight:900;font-size:12px;margin-bottom:4px">👥 Реферальная программа</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">За каждого друга получи +150 Pts!</div>
+          <div style="background:#07030d;border:1px solid var(--panel-border);border-radius:10px;padding:8px;font-size:10px;word-break:break-all;color:var(--cyan);margin-bottom:8px" id="refLink">
+            Загрузка ссылки...
+          </div>
+          <button class="btn-primary" style="margin-top:0;padding:10px;font-size:12px" onclick="shareRefLink()">ПРИГЛАСИТЬ ДРУГА</button>
         </div>
-        <button class="btn-primary" onclick="bidAuction(50)">ПОБИТЬ СТАВКУ (+50 Pts)</button>
-      </div>
-    </section>
+      </section>
 
-    <!-- ИГРА: NEON WHEEL -->
-    <section id="wheel" class="screen">
-      <div class="section-title">🎡 Neon Wheel</div>
-      <div class="game-box">
-        <div style="font-size:60px;margin:10px 0">🎡</div>
-        <div id="wheelRes" style="font-size:13px;font-weight:800;color:var(--gold);min-height:20px"></div>
-        <button class="btn-primary" onclick="spinWheel()">КРУТИТЬ (15 Pts)</button>
-      </div>
-    </section>
+      <!-- ИГРА: ROCKET CRASH -->
+      <section id="crash" class="screen">
+        <div class="section-title">🚀 SQAD Rocket Crash</div>
+        <div class="game-box">
+          <div class="crash-arena">
+            <div class="crash-mult" id="crashMult">1.00x</div>
+            <div id="crashStatus" style="font-size:11px;color:var(--muted);z-index:2;margin-top:4px">Сделайте ставку и запустите ракету</div>
+            <div class="rocket" id="rocketIcon">🚀</div>
+          </div>
 
+          <div style="margin-top:12px;text-align:left">
+            <div style="font-size:10px;color:var(--muted);font-weight:800">РАЗМЕР СТАВКИ (Pts):</div>
+            <div class="bet-input-wrap">
+              <input type="number" id="crashBetInput" class="bet-input" value="10" min="1">
+              <button class="bet-btn" onclick="setBet(10)">10</button>
+              <button class="bet-btn" onclick="setBet(50)">50</button>
+              <button class="bet-btn" onclick="setBet(100)">100</button>
+              <button class="bet-btn" onclick="setMaxBet()">MAX</button>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="crashBtn" onclick="handleCrash()">ПОЕХАЛИ! (СТАВКА)</button>
+        </div>
+      </section>
+
+      <!-- ИГРА: BEAT TAP -->
+      <section id="tap" class="screen">
+        <div class="section-title">⚡ Beat Tap</div>
+        <div class="game-box">
+          <div style="font-size:11px;color:var(--muted)">Натапано очков</div>
+          <div style="font-size:36px;font-weight:900;color:var(--pink);margin:8px 0" id="tapCount">0</div>
+          <button class="btn-primary" onclick="doTap()">ТАПАТЬ ВАЙБ 🔥</button>
+        </div>
+      </section>
+
+      <!-- АУКЦИОН -->
+      <section id="auction" class="screen">
+        <div class="section-title">🏷️ Аукцион SQAD</div>
+        <div class="game-box" style="text-align:left">
+          <div style="font-size:15px;font-weight:900">Telegram Premium (3 месяца)</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Эксклюзивный цифровой лот</div>
+          <div style="background:#000;padding:10px;border-radius:12px;margin:10px 0;border:1px solid var(--panel-border)">
+            <div style="font-size:11px;color:var(--muted)">Текущая ставка: <b style="color:var(--gold)" id="aucBid">500 Pts</b></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">Лидер: <b style="color:#fff" id="aucUser">@alex_sqad</b></div>
+          </div>
+          <button class="btn-primary" onclick="bidAuction(50)">ПОБИТЬ СТАВКУ (+50 Pts)</button>
+        </div>
+      </section>
+
+      <!-- ИГРА: NEON WHEEL -->
+      <section id="wheel" class="screen">
+        <div class="section-title">🎡 Neon Wheel</div>
+        <div class="game-box">
+          <div style="font-size:50px;margin:8px 0">🎡</div>
+          <div id="wheelRes" style="font-size:12px;font-weight:800;color:var(--gold);min-height:18px"></div>
+          <button class="btn-primary" onclick="spinWheel()">КРУТИТЬ (15 Pts)</button>
+        </div>
+      </section>
+
+    </main>
   </div>
 
-  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (СТРОГО 2 КНОПКИ) -->
+  <!-- НИЖНЕЕ МЕНЮ (СТРОГО 2 КНОПКИ) -->
   <nav class="nav-bar">
-    <button class="nav-item active" id="navHome" onclick="openScreen('home')"><i>🏠</i>Меню</button>
+    <button class="nav-item active" id="navHome" onclick="openScreen('home')"><i>🏠</i>Главная</button>
     <button class="nav-item" id="navProfile" onclick="openScreen('profile')"><i>👤</i>Профиль</button>
   </nav>
 </div>
@@ -249,14 +268,18 @@ let userTelegramId = '123456789';
 function openScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id)?.classList.add('active');
-  
-  // Управление подсветкой нижней навигации
+
+  // Переключение активных иконок в боковой панели (Sidebar)
+  document.querySelectorAll('.sidebar-item').forEach(e => e.classList.remove('active'));
+  document.getElementById('side-' + id)?.classList.add('active');
+
+  // Переключение нижней панели
   document.getElementById('navHome').classList.toggle('active', id === 'home');
   document.getElementById('navProfile').classList.toggle('active', id === 'profile');
 }
 
 function updateBal() {
-  document.getElementById('balVal').innerHTML = balance + ' <span>Pts</span>';
+  document.getElementById('balVal').textContent = balance + ' Pts';
   document.getElementById('profBalance').textContent = balance + ' Pts';
 }
 
@@ -281,7 +304,7 @@ async function doRecharge(amount) {
   if (res.ok) {
     balance = res.points;
     updateBal();
-    alert('Баланс успешно пополнен на +' + amount + ' Pts!');
+    alert('Баланс пополнен на +' + amount + ' Pts!');
   } else {
     balance += amount;
     updateBal();
@@ -292,143 +315,4 @@ async function doRecharge(amount) {
 function shareRefLink() {
   const link = document.getElementById('refLink').textContent;
   if (tg?.openTelegramLink) {
-    tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Залетай в SQAD аркаду, фарми баллы и забирай призы! 🔥'));
-  } else {
-    navigator.clipboard?.writeText(link).then(() => alert('Реферальная ссылка скопирована!'));
-  }
-}
-
-/* ROCKET CRASH ENGINE */
-let crashState = 'idle';
-let crashMult = 1.00;
-let crashTimer = null;
-let currentBet = 0;
-
-function handleCrash() {
-  const btn = document.getElementById('crashBtn');
-  const multEl = document.getElementById('crashMult');
-  const statEl = document.getElementById('crashStatus');
-  const rocket = document.getElementById('rocketIcon');
-  const betInput = document.getElementById('crashBetInput');
-
-  if (crashState === 'idle') {
-    currentBet = parseInt(betInput.value) || 0;
-    if (currentBet <= 0) { alert('Введите ставку!'); return; }
-    if (balance < currentBet) { alert('Недостаточно баллов!'); return; }
-
-    balance -= currentBet;
-    updateBal();
-
-    crashState = 'flying';
-    crashMult = 1.00;
-    btn.textContent = 'ЗАБРАТЬ!';
-    btn.style.background = 'linear-gradient(90deg, #ffd45c, #ff9d00)';
-    btn.style.color = '#000';
-    statEl.textContent = 'Ракета летит...';
-    rocket.textContent = '🚀';
-
-    const crashPoint = (Math.random() < 0.25) ? 1.00 : +(1.05 + Math.random() * 3.8).toFixed(2);
-    let posX = 15, posY = 15;
-
-    crashTimer = setInterval(() => {
-      crashMult += 0.04;
-      multEl.textContent = crashMult.toFixed(2) + 'x';
-      posX = Math.min(posX + 2, 80);
-      posY = Math.min(posY + 2.5, 70);
-      rocket.style.left = posX + '%';
-      rocket.style.bottom = posY + '%';
-
-      if (crashMult >= crashPoint) {
-        clearInterval(crashTimer);
-        crashState = 'idle';
-        btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
-        btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
-        btn.style.color = '#fff';
-        rocket.textContent = '💥';
-        statEl.textContent = 'КРАШ НА ' + crashMult.toFixed(2) + 'x!';
-        multEl.style.color = '#ff3f4d';
-
-        setTimeout(() => {
-          rocket.style.left = '15%';
-          rocket.style.bottom = '15%';
-          rocket.textContent = '🚀';
-          multEl.style.color = 'var(--cyan)';
-          multEl.textContent = '1.00x';
-          statEl.textContent = 'Укажите ставку и запустите ракету';
-        }, 2000);
-      }
-    }, 120);
-
-  } else if (crashState === 'flying') {
-    clearInterval(crashTimer);
-    const win = Math.floor(currentBet * crashMult);
-    balance += win;
-    updateBal();
-
-    crashState = 'idle';
-    btn.textContent = 'ПОЕХАЛИ! (СТАВКА)';
-    btn.style.background = 'linear-gradient(90deg, var(--pink), var(--violet))';
-    btn.style.color = '#fff';
-    statEl.textContent = 'ВЫИГРЫШ +' + win + ' Pts!';
-  }
-}
-
-function doTap() {
-  balance += 1; updateBal();
-  document.getElementById('tapCount').textContent = parseInt(document.getElementById('tapCount').textContent) + 1;
-}
-
-function bidAuction(step) {
-  if (balance < step) { alert('Недостаточно баллов!'); return; }
-  balance -= step; updateBal();
-  document.getElementById('aucBid').textContent = (parseInt(document.getElementById('aucBid').textContent) + step) + ' Pts';
-}
-
-function spinWheel() {
-  if (balance < 15) { alert('Недостаточно баллов!'); return; }
-  balance -= 15;
-  const rewards = [0, 5, 15, 30];
-  const win = rewards[Math.floor(Math.random() * rewards.length)];
-  balance += win; updateBal();
-  document.getElementById('wheelRes').textContent = win > 0 ? ('+ ' + win + ' Pts') : 'Мимо!';
-}
-
-async function init() {
-  if (!tg || !tg.initData) {
-    document.getElementById('notTg').style.display = 'block';
-    return;
-  }
-  tg.ready(); tg.expand();
-  document.getElementById('app').style.display = 'block';
-
-  if (tg.initDataUnsafe?.user) {
-    const u = tg.initDataUnsafe.user;
-    userTelegramId = String(u.id);
-    document.getElementById('uName').textContent = u.first_name || 'Player';
-    document.getElementById('uAvatar').textContent = (u.first_name || 'S')[0].toUpperCase();
-    document.getElementById('profName').textContent = u.first_name + (u.last_name ? ' ' + u.last_name : '');
-    document.getElementById('profId').textContent = 'ID: ' + u.id;
-    
-    // Формируем реферальную ссылку
-    const botUsername = 'sqad_tolyatti_bot'; // заменишь на имя своего бота из BotFather
-    document.getElementById('refLink').textContent = `https://t.me/${botUsername}?start=${userTelegramId}`;
-  }
-
-  // Проверяем реферальный параметр при запуске (если пользователь зашел по ссылке друга)
-  let refCode = null;
-  if (tg.initDataUnsafe?.start_param) {
-    refCode = tg.initDataUnsafe.start_param;
-  }
-
-  // Загружаем данные с сервера
-  const res = await apiCall('get_balance', { refCode });
-  if (res.ok && res.balance) {
-    balance = Number(res.balance.points || 100);
-  }
-  updateBal();
-}
-
-init();
-</script>
-</body>
-</html>
+    tg.openTelegramLink('https://t.me/share/url?url=' +
