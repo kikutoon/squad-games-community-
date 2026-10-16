@@ -121,11 +121,16 @@
     .crash-multiplier { position:absolute;right:4%;bottom:5%;z-index:3;font-size:clamp(38px,7vw,76px);font-weight:950;letter-spacing:-3px;color:#f7f8ff;text-shadow:0 3px 24px #ff9b3860;font-variant-numeric:tabular-nums; }
     .crash-multiplier:empty { display:none; }
 
-    .crash-result { position:absolute;z-index:5;left:50%;top:43%;transform:translate(-50%,-50%);max-width:94%;text-align:center;font-size:clamp(42px,8vw,96px);line-height:1;font-weight:1000;white-space:nowrap;pointer-events:none; }
+    .crash-result { transition:opacity .38s ease; position:absolute;z-index:5;left:50%;top:43%;transform:translate(-50%,-50%);max-width:94%;text-align:center;font-size:clamp(42px,8vw,96px);line-height:1;font-weight:1000;white-space:nowrap;pointer-events:none; }
+    .crash-result.fade-out { opacity:0; transition:opacity .38s ease; }
     .crash-result.win { width:max-content;max-width:94%;white-space:normal;display:flex;flex-direction:column;align-items:center;gap:clamp(4px,1vw,10px);transform:translate(-50%,-50%);filter:drop-shadow(0 5px 0 #170c2c);animation:slotWinReveal .55s cubic-bezier(.2,.85,.25,1) both; }
     .crash-result .total-win-title { display:block;font-family:'Lilita One','Arial Rounded MT Bold',Impact,'Arial Black',sans-serif;font-size:clamp(30px,5.8vw,64px);font-weight:400;line-height:.98;letter-spacing:.01em;text-transform:uppercase;color:#ffcf35;-webkit-text-stroke:3px #35121d;paint-order:stroke fill;text-shadow:0 2px 0 #fff2a6,0 5px 0 #9d321f,0 8px 0 #35121d,0 10px 12px #0009;filter:drop-shadow(0 0 5px #ffad34aa); }
     .crash-result .total-win-amount { display:block;max-width:100%;font-family:'Titan One','Lilita One','Arial Rounded MT Bold',Impact,'Arial Black',sans-serif;font-size:clamp(42px,8.2vw,94px);font-weight:400;line-height:1.04;letter-spacing:.01em;color:#ffdf36;-webkit-text-stroke:clamp(3px,.48vw,6px) #21101c;paint-order:stroke fill;text-shadow:0 -2px 0 #fff4b2,0 2px 0 #fff4b2,0 5px 0 #ff8b18,0 9px 0 #d63c24,0 13px 0 #59142c,0 16px 0 #1b0b22,0 19px 18px #0009;overflow-wrap:anywhere;transform-origin:center;animation:slotAmountReveal .6s .12s cubic-bezier(.18,.9,.25,1) both; }
     .crash-result .total-win-subtitle { display:none!important; }
+    .crash-result.total-win-modal { pointer-events:auto; }
+    .crash-result .total-win-close { position:absolute;right:-14px;top:-20px;z-index:8;width:36px;height:36px;border:1px solid #ffe78a;border-radius:50%;background:linear-gradient(180deg,#fff1a8,#ffb51f);color:#281b08;font:900 24px/1 Arial,sans-serif;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #9b5315,0 4px 14px #0008;cursor:pointer;pointer-events:auto; }
+    .crash-result .total-win-close:active { transform:translateY(2px);box-shadow:0 1px 0 #9b5315; }
+    @media(max-width:520px) { .crash-result .total-win-close {right:-8px;top:-18px;width:32px;height:32px;font-size:22px} }
     @keyframes slotWinReveal { 0%{opacity:0;transform:translate(-50%,-45%) scale(.78)} 72%{opacity:1;transform:translate(-50%,-52%) scale(1.035)} 100%{opacity:1;transform:translate(-50%,-50%) scale(1)} }
     @keyframes slotAmountReveal { 0%{opacity:0;transform:scale(.72);filter:brightness(1.8)} 65%{opacity:1;transform:scale(1.045);filter:brightness(1.15)} 100%{opacity:1;transform:scale(1);filter:brightness(1)} }
     .win-confetti { display:none!important; }
@@ -319,6 +324,93 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
  body.crash-theme .two-col{grid-template-columns:1fr 1fr;gap:8px}
 }
 @media(max-width:390px){body.crash-theme .app{padding-left:6px;padding-right:6px}body.crash-theme .wallet-pill{font-size:11px}body.crash-theme .mode-btn{min-width:82px;padding:6px}body.crash-theme .rocket-stage.crash-stage{height:245px}body.crash-theme .game-card:has(.crash-stage) .controls{padding-left:9px;padding-right:9px}}
+
+
+
+/* SQAD v9 — responsive layouts for every mode, not just Crash */
+@media (max-width:760px){
+  body .app{width:100%;padding:10px 10px calc(106px + env(safe-area-inset-bottom));}
+  body .topbar{gap:8px;margin-bottom:12px;align-items:center;}
+  body .brand{gap:8px;}
+  body .logo{width:38px;height:38px;flex:0 0 38px;border-radius:12px;}
+  body .brand h1{font-size:16px;letter-spacing:1px;}
+  body .brand p{font-size:10px;}
+  body .wallet-pill{max-width:48%;overflow:hidden;text-overflow:ellipsis;padding:8px 9px;font-size:12px;}
+  body .layout{display:flex;flex-direction:column;gap:10px;width:100%;}
+  body .sidebar{position:static;top:auto;width:100%;padding:7px;border-radius:15px;}
+  body .mode-list{display:flex;flex-direction:row;gap:6px;max-height:none;overflow-x:auto;overflow-y:hidden;padding:0 0 2px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;}
+  body .mode-btn{flex:0 0 auto;width:auto;min-width:80px;max-width:130px;scroll-snap-align:start;padding:7px 9px;gap:6px;}
+  body .mode-name{font-size:11px;white-space:nowrap;}
+  body .mode-icon{width:25px;height:25px;font-size:14px;}
+  body .content{width:100%;gap:10px;}
+  body .panel,body .game-card,body .exchange,body .small-panel{min-width:0;padding:13px;border-radius:16px;}
+  body .section-head{gap:8px;align-items:flex-start;}
+  body .section-head h3{font-size:15px;}
+  body .section-head span{font-size:10px;text-align:right;}
+  body .game-title-row h3{font-size:19px;}
+  body .game-title-row p{font-size:11px;}
+  body .stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+  body .stat{min-width:0;padding:10px!important;border-radius:12px;}
+  body .stat .label{font-size:9px!important;line-height:1.25;}
+  body .stat .value{font-size:clamp(13px,4vw,18px)!important;overflow-wrap:anywhere;}
+  body .stat .sub{font-size:9px;line-height:1.25;}
+  body .two-col{grid-template-columns:minmax(0,1fr);gap:9px;}
+  body .controls{gap:8px;}
+  body .controls .field{min-width:0;flex:1 1 100%;}
+  body .controls .btn{min-height:44px;flex:1 1 100%;}
+  body .field input{min-height:44px;font-size:16px;}
+  body .play-area{width:100%;min-width:0;min-height:190px;margin:12px 0;padding:12px;overflow:hidden;}
+  body .big-symbol{font-size:48px;}
+  body .actions{gap:8px;}
+  body .actions .btn{min-height:42px;}
+  body .market-head{align-items:flex-start;}
+  body .market-head h3{font-size:17px;}
+  body .market-pills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+  body .market-pill{min-width:0;padding:9px 5px;font-size:10px;white-space:normal;}
+  body .market-chart-wrap{margin:10px 0 12px;padding:9px;border-radius:12px;}
+  body #marketChart{height:170px;max-width:100%;}
+  body .chart-toolbar{align-items:flex-start;}
+  body .chart-ranges{display:flex;gap:4px;flex-wrap:wrap;}
+  body .chart-range{padding:6px 7px;font-size:10px;}
+  body .chart-caption{gap:6px;flex-wrap:wrap;font-size:9px;}
+  body .asset-row{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;}
+  body .asset-name{gap:8px;}
+  body .asset-icon{width:32px;height:32px;flex:0 0 32px;}
+  body .asset-price{text-align:left;grid-column:1;grid-row:2;padding-left:40px;}
+  body .market-actions{grid-column:2;grid-row:1 / span 2;flex-direction:column;}
+  body .market-actions .btn{min-width:70px;min-height:38px;padding:8px;font-size:10px;}
+  body .profile-header{padding:13px;gap:10px;}
+  body .profile-header h2{font-size:18px;overflow-wrap:anywhere;}
+  body .list-row{align-items:flex-start;font-size:11px;}
+  body .list-row strong{text-align:right;max-width:58%;overflow-wrap:anywhere;}
+  body .admin-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+  body .admin-action{min-width:0;padding:10px;}
+  body .admin-action strong{overflow-wrap:anywhere;}
+  body .note{font-size:10px;line-height:1.4;}
+  body input,body button{touch-action:manipulation;}
+  body .hidden{display:none!important;}
+}
+@media(max-width:420px){
+  body .app{padding-left:7px;padding-right:7px;}
+  body .brand p{display:none;}
+  body .wallet-pill{max-width:52%;gap:5px;font-size:11px;}
+  body .mode-btn{min-width:74px;padding:6px 7px;}
+  body .mode-name{font-size:10px;}
+  body .stats{gap:5px;}
+  body .stat{padding:8px!important;}
+  body .stat .value{font-size:13px!important;}
+  body .market-pills{grid-template-columns:1fr;}
+  body .market-pill{width:100%;text-align:left;padding:9px 10px;}
+  body .admin-grid{grid-template-columns:1fr;}
+}
+@media(min-width:761px) and (max-width:1020px){
+  body .app{padding:14px;}
+  body .layout{grid-template-columns:165px minmax(0,1fr);gap:12px;}
+  body .sidebar{padding:9px;}
+  body .game-card,body .exchange{padding:15px;}
+  body .asset-row{grid-template-columns:minmax(0,1.2fr) minmax(70px,.8fr) auto;gap:7px;}
+  body .market-actions .btn{padding:7px;font-size:10px;}
+}
 
 </style>
 </head>
@@ -685,8 +777,10 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
       lion.style.transform = "translate(-50%, -50%) scale(" + (0.94 + progress * 0.12).toFixed(3) + ")";
     }
 
+    let crashResultHideTimer = null;
     function startCrashDemo() {
       if (state.crashActive) return;
+      if (crashResultHideTimer) { clearTimeout(crashResultHideTimer); crashResultHideTimer = null; }
       state.crashActive = true;
       state.crashMultiplier = 1;
       const crashResult = $("crashResultOverlay"); crashResult.className = "crash-result hidden"; crashResult.textContent = "";
@@ -744,10 +838,25 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
       // Show the celebratory TOTAL WIN banner only for a cashout at 5x+ OR a payout of 5000+ points.
       const showTotalWin = state.crashMultiplier >= 5 || demoWin >= 5000;
       if (showTotalWin) {
-        result.innerHTML = '<span class="total-win-title">TOTAL WIN</span><span class="total-win-amount"></span>';
+        result.classList.add("total-win-modal");
+        result.innerHTML = '<button type="button" class="total-win-close" aria-label="Закрыть сообщение о выигрыше" title="Закрыть">×</button><span class="total-win-title">TOTAL WIN</span><span class="total-win-amount"></span>';
         result.querySelector('.total-win-amount').textContent = demoWin.toLocaleString("ru-RU");
+        result.querySelector('.total-win-close').onclick = () => {
+          result.className = "crash-result hidden";
+          result.textContent = "";
+        };
       } else {
+        result.classList.remove("total-win-modal");
         result.textContent = demoWin.toLocaleString("ru-RU");
+        if (crashResultHideTimer) clearTimeout(crashResultHideTimer);
+        crashResultHideTimer = setTimeout(() => {
+          result.classList.add("fade-out");
+          crashResultHideTimer = setTimeout(() => {
+            result.className = "crash-result hidden";
+            result.textContent = "";
+            crashResultHideTimer = null;
+          }, 400);
+        }, 1600);
       }
       $("gameMessage").textContent = "Успешный выход! ×" + state.crashMultiplier.toFixed(2);
       $("gameSub").textContent = "Демо-режим: баланс не изменён.";
