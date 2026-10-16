@@ -512,11 +512,11 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
           </div>
           <div class="game-card">
             <div class="section-head"><h3>Кошелёк</h3><span>Операции</span></div>
-            <p class="muted" style="font-size:12px;margin:8px 0 14px">Игровые очки и Telegram Stars — разные вещи. Пополнение Stars появится после настройки Telegram Bot Payments и серверного подтверждения платежей.</p>
+            <p class="muted" style="font-size:12px;margin:8px 0 14px">Игровые очки и Telegram Stars — разные вещи. Покупка игровых очков за Stars будет доступна после проверки webhook и серверного подтверждения оплаты.</p>
             <div class="actions"><button class="btn btn-primary" id="topupButton">✦ Пополнить Stars</button><button class="btn btn-soft" id="withdrawButton">Вывод Stars</button></div>
             <div class="list">
               <div class="list-row"><span>Игровой баланс</span><strong id="walletBalance">—</strong></div>
-              <div class="list-row"><span>Способ пополнения</span><strong>Telegram Stars · требует настройки</strong></div>
+              <div class="list-row"><span>Способ пополнения</span><strong id="paymentStatus">Telegram Stars · проверка настройки</strong></div>
               <div class="list-row"><span>История операций</span><strong>Подключается к Supabase</strong></div>
             </div>
           </div>
@@ -571,7 +571,8 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
       SUPABASE_URL: "https://kkmanstpvlluaykwlmml.supabase.co",
       SUPABASE_ANON_KEY: "sb_publishable_8QbPOOjh9DmkEGQB78kpkA_DNLOYLWB",
       OWNER_TG_ID: "1229294243",
-      BOT_USERNAME: ""        // username вашего бота без @
+      BOT_USERNAME: "",       // username вашего бота без @
+      STARS_PAYMENTS_ENABLED: false // включать только после настройки и проверки webhook
     };
 
     const tg = window.Telegram?.WebApp;
@@ -1002,11 +1003,46 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
       else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast("Ссылка скопирована")).catch(() => toast(url));
       else toast(url);
     }
-    function topup() {
-      toast("Stars-платежи ещё не подключены. Сначала настройте Telegram Bot Payments и webhook.");
+    async function topup() {
+      if (!CONFIG.STARS_PAYMENTS_ENABLED) {
+        return toast("Покупка временно отключена: сначала нужно подключить и проверить webhook Telegram.");
+      }
+      if (!tg?.initData || !state.supabase) {
+        return toast("Открой игру через Telegram Mini App и проверь подключение.");
+      }
+      const choices = [
+        { stars: 1, points: 10, label: "1 ⭐ → 10 игровых очков" },
+        { stars: 100, points: 1500, label: "100 ⭐ → 1500 игровых очков" },
+        { stars: 200, points: 2000, label: "200 ⭐ → 2000 игровых очков" }
+      ];
+      const answer = prompt("Выбери пакет, введя количество Stars:\n\n" + choices.map(x => x.label).join("\n"), "100");
+      if (answer === null) return;
+      const packageStars = Number(answer);
+      if (!choices.some(x => x.stars === packageStars)) return toast("Доступны пакеты: 1, 100 или 200 Stars.");
+      try {
+        const { data, error } = await state.supabase.functions.invoke("stars-payments", {
+          body: { initData: tg.initData, package_stars: packageStars }
+        });
+        if (error) throw error;
+        if (!data?.ok || !data?.invoice_url) throw new Error(data?.error || "Не удалось создать счёт.");
+        if (tg.openInvoice) {
+          tg.openInvoice(data.invoice_url, status => {
+            if (status === "paid") toast("Платёж принят Telegram. Баланс обновится после серверного подтверждения.");
+            else if (status === "cancelled") toast("Оплата отменена.");
+            else if (status === "failed") toast("Telegram не смог завершить оплату.");
+          });
+        } else if (tg.openTelegramLink) {
+          tg.openTelegramLink(data.invoice_url);
+        } else {
+          window.open(data.invoice_url, "_blank", "noopener");
+        }
+      } catch (e) {
+        console.error("Stars payment request failed:", e);
+        toast("Не удалось создать счёт. Оплата не подтверждена, очки не начислены.");
+      }
     }
     function withdraw() {
-      toast("Вывод Stars не активирован. Доступность зависит от правил Telegram и платёжной схемы.");
+      toast("Вывод средств отключён. В этой версии доступно только тестирование пополнения.");
     }
     async function initSupabase() {
       if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY || !window.supabase) return;
@@ -1062,6 +1098,7 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
     }
     renderBalance();
     renderProfile();
+    if ($("paymentStatus")) $("paymentStatus").textContent = CONFIG.STARS_PAYMENTS_ENABLED ? "Telegram Stars · серверная проверка" : "Telegram Stars · временно отключено";
     selectMode("crash",false);
     renderDevSettings();
     initSupabase();
