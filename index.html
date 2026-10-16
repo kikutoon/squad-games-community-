@@ -1102,6 +1102,19 @@ body.crash-theme .stat,body.crash-theme .small-panel,body.crash-theme .panel{bac
     selectMode("crash",false);
     renderDevSettings();
     initSupabase();
+    <!-- КОШЕЛЕК: ПОПОЛНЕНИЕ И ВЫВОД -->
+<section id="wallet" class="screen">
+  <div class="section-title">💳 Кошелек (Оплата и Вывод)</div>
+  <div class="game-box" style="text-align:left;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:900;color:var(--gold);margin-bottom:4px">⭐ Пополнение баланса</div>
+    <button class="btn-primary btn-stars" onclick="openBotDonate()" style="margin-bottom:10px">ПОПОЛНИТЬ ЧЕРЕЗ БОТА ⭐</button>
+    
+    <div style="font-size:12px;font-weight:900;color:var(--cyan);margin-top:14px;margin-bottom:4px">📤 Запрос на вывод средств</div>
+    <input type="number" id="withdrawInput" class="input-field" placeholder="Количество Stars для вывода" min="10">
+    <button class="btn-primary" onclick="requestWithdraw()">СОЗДАТЬ ЗАЯВКУ НА ВЫВОД</button>
+  </div>
+</section>
+
   </script>
 </body>
 </html>
